@@ -27,8 +27,9 @@ instance/
 saves/*
 !saves/.gitkeep
 
-# --- Divers systèmes d'exploitation / éditeurs ---
+# --- Divers systèmes d'exploitation / éditeurs / outils ---
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+.claude/

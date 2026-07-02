@@ -1,5 +1,5 @@
-{# intro.html — Cinématique d'ouverture + faux site d'emploi.
-   Page PLEIN ÉCRAN autonome (pas de topbar) pour l'ambiance cinématique. #}
+{# intro.html — Intro IMMERSIVE : tout se passe SUR les écrans du PC de KZ.
+   Page plein écran autonome (pas de topbar) pour l'ambiance cinématique. #}
 <!doctype html>
 <html lang="fr">
 <head>
@@ -11,51 +11,53 @@
 </head>
 <body>
   <div class="intro">
-    {# Fond : le double écran de KZ (flou -> net) #}
-    <div class="intro-bg"></div>
 
-    {# Paupières qui s'écartent (yeux qui s'ouvrent) #}
+    {# La scène = l'image du setup, au ratio exact (positions en % fiables) #}
+    <div class="scene" id="scene">
+
+      {# ---------- ÉCRAN GAUCHE : navigateur "Viens Chercher Argent" ---------- #}
+      <div class="ecran ecran-gauche" id="ecranG">
+        {# Icône posée sur le moniteur : on clique dessus pour ouvrir le site #}
+        <button class="icone-nav" id="btnMetier" type="button">
+          <span class="rond">🌐</span>
+          <span class="txt">Viens Chercher Argent</span>
+        </button>
+
+        {# Le faux site, qui remplit le moniteur une fois ouvert #}
+        <div class="navigateur" id="navigateur">
+          <div class="nav-barre">🔒 https://vienschercherargent.kz</div>
+          <div class="nav-page">
+            <img class="site-logo-img"
+                 src="{{ url_for('static', filename='img/ui/logovienchercherargent.png') }}"
+                 alt="Viens Chercher Argent">
+            <p class="site-slogan">Le job de tes rêves (ou pas) t'attend, KZ.</p>
+            <div class="annonces" id="annonces"></div> {# rempli par intro.js #}
+          </div>
+        </div>
+      </div>
+
+      {# ---------- ÉCRAN DROIT : app "Biscotte" (bloqué + notif d'Océane) ---------- #}
+      <div class="ecran ecran-droit" id="ecranD">
+        <div class="bloque-strip" id="bloqueTag">⛔ UTILISATEUR BLOQUÉ ⛔</div>
+        <div class="notif" id="notif">
+          <div class="notif-avatar">
+            <img src="{{ url_for('static', filename='img/ui/biscotte.png') }}" alt="Biscotte">
+          </div>
+          <div class="notif-corps">
+            <div class="notif-titre">Océane <span class="notif-app">• Biscotte</span></div>
+            <div class="notif-msg">Je te quitte, tu passes trop de temps sur Biscotte 💔</div>
+          </div>
+        </div>
+      </div>
+
+    </div>{# /scene #}
+
+    {# Paupières (yeux qui s'ouvrent) au-dessus de la scène #}
     <div class="paupiere haut"></div>
     <div class="paupiere bas"></div>
 
-    {# Bandeau "utilisateur bloqué" #}
-    <div class="banniere-bloque" id="banniere">⛔ UTILISATEUR BLOQUÉ ⛔</div>
-
-    {# Notification "Biscotte" (le faux Discord) d'Océane, en bas-droite #}
-    <div class="notif" id="notif">
-      <div class="notif-avatar">
-        <img src="{{ url_for('static', filename='img/ui/biscotte.png') }}" alt="Biscotte">
-      </div>
-      <div class="notif-corps">
-        <div class="notif-titre">Océane <span class="notif-app">• Biscotte</span></div>
-        <div class="notif-msg">Je te quitte, tu passes trop de temps sur Biscotte 💔</div>
-      </div>
-    </div>
-
-    {# Overlay "KZ a tout perdu" + bouton vers le site d'emploi #}
-    <div class="overlay-perdu" id="overlayPerdu">
-      <h1>KZ A TOUT PERDU.</h1>
-      <button class="btn-or" id="btnMetier" type="button">Chercher un métier →</button>
-    </div>
-
-    {# Faux site d'emploi "VIENS GAGNER ARGENT" #}
-    <div class="site-emploi" id="siteEmploi">
-      <div class="fenetre">
-        <div class="barre-fenetre">
-          <span class="url">🔒 https://vienschercherargent.kz</span>
-          <span>—  ▢  ✕</span>
-        </div>
-        <div class="site-contenu">
-          {# Logo du site fourni par l'équipe #}
-          <img class="site-logo-img"
-               src="{{ url_for('static', filename='img/ui/logovienchercherargent.png') }}"
-               alt="Viens Chercher Argent">
-          <p class="site-slogan">Le job de tes rêves (ou pas) t'attend, KZ.</p>
-          {# Les annonces sont ajoutées par intro.js #}
-          <div class="annonces" id="annonces"></div>
-        </div>
-      </div>
-    </div>
+    {# Narration en bas #}
+    <div class="legende" id="legende"></div>
 
     {# Popup de résultat d'une candidature #}
     <div class="popup" id="popup">
@@ -65,7 +67,7 @@
       </div>
     </div>
 
-    {# Petit lien pour sauter l'intro (pratique pour la démo) #}
+    {# Sauter l'intro (pratique pour la démo) #}
     <a class="passer" href="{{ url_for('jouer') }}">Passer l'intro ⏭</a>
   </div>
 

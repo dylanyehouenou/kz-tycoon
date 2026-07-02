@@ -1,153 +1,146 @@
 /* ==========================================================================
-   intro.css — Cinématique d'ouverture + faux site d'emploi "VIENS GAGNER ARGENT".
-   Couleurs via variables.css. Style "pixel/parodie" (façon UI fictive de jeu).
+   intro.css — Intro IMMERSIVE : la notif "Biscotte" et le site "Viens Chercher
+   Argent" s'affichent DIRECTEMENT sur les écrans du PC de KZ (setuppov).
+
+   Principe point-and-click : un conteneur ".scene" a EXACTEMENT le ratio de
+   l'image de fond -> les positions en % tombent toujours pile sur les écrans,
+   quelle que soit la taille de la fenêtre.
    ========================================================================== */
 
-/* Police pixel pour les titres (repli monospace si pas d'internet) */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@500;700&display=swap');
 
+/* ---- Positions des 2 écrans, en % de l'image (faciles à AJUSTER ici) ---- */
+:root {
+  /* Écran GAUCHE */
+  --eg-left: 17%;  --eg-top: 23%;  --eg-w: 32%;  --eg-h: 32%;
+  /* Écran DROIT */
+  --ed-left: 52%;  --ed-top: 24%;  --ed-w: 32%;  --ed-h: 32%;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sans-serif; }
+.intro { position: fixed; inset: 0; background: #000; }
 
-/* Conteneur plein écran */
-.intro { position: fixed; inset: 0; overflow: hidden; color: var(--texte-clair); }
-
-/* Fond = le double écran de KZ, part flou/sombre puis devient net (yeux qui s'ouvrent) */
-.intro-bg {
-  position: absolute; inset: 0;
-  background: url("/static/img/backgrounds/setuppov.png") center/cover no-repeat;
-  filter: blur(22px) brightness(.2);
-  transform: scale(1.06);
-  animation: reveil 2.6s ease-out forwards;
+/* -------- La scène (image de fond, ratio exact = pas de décalage) -------- */
+.scene {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(100vw, calc(100vh * 2816 / 1536));
+  aspect-ratio: 2816 / 1536;
+  background: url("/static/img/backgrounds/setuppov.png") center / 100% 100% no-repeat;
+  overflow: hidden;
+  filter: blur(22px) brightness(.2);       /* départ flou/sombre */
+  animation: reveil 2.6s ease-out forwards; /* "yeux qui s'ouvrent" */
 }
 @keyframes reveil {
-  0%   { filter: blur(22px) brightness(.15); transform: scale(1.10); }
+  0%   { filter: blur(22px) brightness(.15); }
   55%  { filter: blur(8px)  brightness(.5);  }
-  70%  { filter: blur(10px) brightness(.35); } /* petit clignement */
-  100% { filter: blur(0)    brightness(1);   transform: scale(1); }
+  70%  { filter: blur(10px) brightness(.35); }
+  100% { filter: blur(0)    brightness(1);   }
 }
 
-/* Paupières (deux bandes noires qui s'écartent) */
+/* Paupières (bandes noires qui s'écartent), au-dessus de tout */
 .paupiere { position: absolute; left: 0; width: 100%; height: 52%; background: #000; z-index: 30; }
 .paupiere.haut { top: 0;    animation: paupiereHaut 2.6s ease-out forwards; }
 .paupiere.bas  { bottom: 0; animation: paupiereBas  2.6s ease-out forwards; }
-@keyframes paupiereHaut {
-  0% { transform: translateY(0); } 55% { transform: translateY(-85%); }
-  70% { transform: translateY(-70%); } 100% { transform: translateY(-100%); }
-}
-@keyframes paupiereBas {
-  0% { transform: translateY(0); } 55% { transform: translateY(85%); }
-  70% { transform: translateY(70%); } 100% { transform: translateY(100%); }
-}
+@keyframes paupiereHaut { 0%{transform:translateY(0);} 55%{transform:translateY(-85%);} 70%{transform:translateY(-70%);} 100%{transform:translateY(-100%);} }
+@keyframes paupiereBas  { 0%{transform:translateY(0);} 55%{transform:translateY(85%);}  70%{transform:translateY(70%);}  100%{transform:translateY(100%);} }
 
-/* Bandeau "UTILISATEUR BLOQUÉ" en haut */
-.banniere-bloque {
-  position: absolute; top: 0; left: 0; width: 100%; z-index: 25;
-  text-align: center; padding: 12px; letter-spacing: 2px;
-  font-family: 'Press Start 2P', monospace; font-size: 14px;
+/* -------- Les 2 écrans (zones cliquables posées sur les moniteurs) -------- */
+.ecran {
+  position: absolute; overflow: hidden;
+  container-type: size;   /* permet d'utiliser des tailles en cqw = % de l'écran */
+}
+.ecran-gauche { left: var(--eg-left); top: var(--eg-top); width: var(--eg-w); height: var(--eg-h); }
+.ecran-droit  { left: var(--ed-left); top: var(--ed-top); width: var(--ed-w); height: var(--ed-h); }
+
+/* ---------- ÉCRAN DROIT : app Biscotte (bandeau bloqué + notif) ---------- */
+.bloque-strip {
+  position: absolute; top: 0; left: 0; width: 100%; z-index: 4;
+  text-align: center; padding: 1.6cqw; letter-spacing: .3cqw;
+  font-family: 'Press Start 2P', monospace; font-size: 2.1cqw;
   color: #fff; background: var(--erreur);
-  box-shadow: 0 3px 0 rgba(0,0,0,.4);
-  transform: translateY(-100%); transition: transform .5s ease;
+  transform: translateY(-130%); transition: transform .5s ease;
 }
-.banniere-bloque.visible { transform: translateY(0); }
+.bloque-strip.visible { transform: translateY(0); }
 
-/* Notification Discord (bas-droite), style bloc/pixel */
 .notif {
-  position: absolute; right: 22px; bottom: 22px; z-index: 26;
-  display: flex; gap: 12px; align-items: center;
-  width: 340px; padding: 14px; border-radius: 10px;
-  background: #1e1f22; border: 3px solid var(--violet-profond); /* couleurs Biscotte */
-  box-shadow: 0 8px 24px rgba(0,0,0,.6);
-  transform: translateX(120%); opacity: 0; transition: transform .5s ease, opacity .5s ease;
+  position: absolute; right: 4%; bottom: 5%; z-index: 5;
+  display: flex; gap: 2.5cqw; align-items: center;
+  width: 86%; padding: 3cqw; border-radius: 2cqw;
+  background: #1e1f22; border: .6cqw solid var(--violet-profond);
+  box-shadow: 0 1cqw 3cqw rgba(0,0,0,.6);
+  transform: translateX(130%); opacity: 0; transition: transform .5s ease, opacity .5s ease;
+  cursor: pointer;
 }
 .notif.visible { transform: translateX(0); opacity: 1; }
-.notif-avatar {
-  flex: 0 0 46px; height: 46px; border-radius: 10px; overflow: hidden;
-  background: var(--violet-profond);
-}
+.notif-avatar { flex: 0 0 12cqw; height: 12cqw; border-radius: 2cqw; overflow: hidden; background: var(--violet-profond); }
 .notif-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.notif-titre { font-weight: 700; }
-.notif-app { color: #9aa0ff; font-size: 12px; }
-.notif-msg { font-size: 14px; color: #dbdee1; margin-top: 3px; }
+.notif-titre { font-size: 3.4cqw; font-weight: 700; color: #fff; }
+.notif-app { font-size: 2.6cqw; color: #9aa0ff; }
+.notif-msg { font-size: 3cqw; color: #dbdee1; margin-top: .6cqw; }
 
-/* Overlay "KZ a tout perdu" + bouton */
-.overlay-perdu {
-  position: absolute; inset: 0; z-index: 27;
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  gap: 22px; background: rgba(0,0,0,.55); text-align: center;
+/* ---------- ÉCRAN GAUCHE : icône navigateur puis le faux site ---------- */
+.icone-nav {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 1.5cqw;
+  background: none; border: none; color: #fff; cursor: pointer;
 }
-.overlay-perdu.visible { display: flex; animation: fondu .6s ease; }
-.overlay-perdu h1 {
-  font-family: 'Press Start 2P', monospace; font-size: 26px; color: var(--erreur);
-  text-shadow: 0 3px 0 #000;
+.icone-nav .rond {
+  width: 18cqw; height: 18cqw; border-radius: 3.5cqw; display: grid; place-items: center;
+  font-size: 10cqw; background: linear-gradient(135deg, var(--rose-neon), var(--violet-profond));
+  animation: pulseIcone 1.6s infinite;
 }
-@keyframes fondu { from { opacity: 0; } to { opacity: 1; } }
+.icone-nav .txt { font-size: 3cqw; font-weight: 700; text-shadow: 0 .3cqw .6cqw #000; }
+@keyframes pulseIcone {
+  0%,100% { box-shadow: 0 0 0 0 rgba(224,57,155,.5); }
+  50%     { box-shadow: 0 0 0 5cqw rgba(224,57,155,0); }
+}
+.icone-nav.cache { display: none; }
 
-/* ---------- Faux site d'emploi ---------- */
-.site-emploi {
-  position: absolute; inset: 0; z-index: 28; display: none;
-  align-items: center; justify-content: center; background: rgba(10,8,25,.75);
-}
-.site-emploi.visible { display: flex; animation: fondu .4s ease; }
-.fenetre {
-  width: min(760px, 92vw); max-height: 88vh; overflow: hidden;
-  border: 3px solid var(--bleu-nuit); border-radius: 12px;
-  background: #f4f1fa; color: var(--bleu-nuit); display: flex; flex-direction: column;
-}
-.barre-fenetre {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 12px; background: var(--violet-profond); color: #fff; font-size: 14px;
-}
-.barre-fenetre .url { font-family: monospace; }
-.site-contenu { padding: 18px 20px; overflow-y: auto; }
-.site-logo-img {
-  display: block; margin: 0 auto 12px; width: min(420px, 85%); height: auto;
-  border-radius: 10px;
-}
-.site-slogan { text-align: center; margin-bottom: 16px; color: #555; }
-
-.annonces { display: grid; gap: 12px; }
+.navigateur { position: absolute; inset: 0; display: none; flex-direction: column; background: #f4f1fa; color: var(--bleu-nuit); }
+.navigateur.visible { display: flex; }
+.nav-barre { background: var(--violet-profond); color: #fff; padding: 2cqw 3cqw; font-size: 2.6cqw; font-family: monospace; }
+.nav-page { flex: 1; overflow-y: auto; padding: 3cqw; }
+.site-logo-img { display: block; width: 72%; margin: 0 auto 2cqw; border-radius: 2cqw; }
+.site-slogan { text-align: center; font-size: 2.8cqw; color: #555; margin-bottom: 3cqw; }
 .annonce {
-  display: flex; align-items: center; gap: 14px;
-  padding: 12px 14px; border-radius: 10px; background: #fff;
-  border: 2px solid #e0d8ef;
+  display: flex; align-items: center; gap: 2.5cqw; margin-bottom: 2cqw;
+  padding: 2.2cqw; border-radius: 2cqw; background: #fff; border: .5cqw solid #e0d8ef;
 }
-.annonce .emoji { font-size: 30px; }
-.annonce .infos { flex: 1; }
-.annonce .titre { font-weight: 700; }
-.annonce .desc { font-size: 13px; color: #666; }
 .annonce.ynov { border-color: var(--orange-dore); background: #fff8ec; }
+.annonce .emoji { font-size: 6cqw; }
+.annonce .infos { flex: 1; }
+.annonce .titre { font-weight: 700; font-size: 3cqw; }
+.annonce .desc { font-size: 2.4cqw; color: #666; }
 .annonce button {
-  cursor: pointer; font-weight: 700; color: var(--bleu-nuit);
-  background: var(--orange-dore); border: 2px solid var(--bleu-nuit);
-  border-radius: 8px; padding: 8px 14px;
+  cursor: pointer; font-weight: 700; color: var(--bleu-nuit); font-size: 2.8cqw;
+  background: var(--orange-dore); border: .5cqw solid var(--bleu-nuit);
+  border-radius: 1.5cqw; padding: 1.6cqw 3cqw;
 }
 .annonce button:hover { filter: brightness(1.08); }
 
-/* Popup résultat de candidature */
-.popup {
-  position: absolute; inset: 0; z-index: 29; display: none;
-  align-items: center; justify-content: center; background: rgba(0,0,0,.6);
+/* ---------- Légende (narration) en bas de la scène ---------- */
+.legende {
+  position: absolute; left: 0; bottom: 4%; width: 100%; z-index: 20;
+  text-align: center; padding: 0 6%; color: #fff;
+  font-size: clamp(14px, 2.3vh, 26px); font-weight: 700; text-shadow: 0 2px 6px #000;
+  opacity: 0; transition: opacity .6s ease;
 }
+.legende.visible { opacity: 1; }
+
+/* ---------- Popup résultat de candidature (au centre) ---------- */
+.popup { position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.6); }
 .popup.visible { display: flex; }
-.popup-boite {
-  width: min(440px, 90vw); padding: 24px; text-align: center;
-  background: var(--bleu-nuit); border: 3px solid var(--orange-dore); border-radius: 12px;
-}
+.popup-boite { width: min(440px, 82%); padding: 24px; text-align: center; color: #fff; background: var(--bleu-nuit); border: 3px solid var(--orange-dore); border-radius: 14px; }
 .popup-boite p { margin-bottom: 18px; font-size: 16px; }
 
-/* Boutons dorés réutilisés + lien "passer" */
+/* ---------- Boutons dorés + lien "passer" ---------- */
 .btn-or {
-  cursor: pointer; text-decoration: none; display: inline-block;
-  font-weight: 800; color: var(--texte-sombre);
-  padding: 14px 22px; border-radius: 14px; border: 3px solid var(--bleu-nuit);
+  cursor: pointer; text-decoration: none; display: inline-block; font-weight: 800; color: var(--texte-sombre);
+  padding: 12px 20px; border-radius: 12px; border: 3px solid var(--bleu-nuit);
   background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 55%, var(--or-fonce));
   box-shadow: 0 5px 0 var(--or-ombre);
 }
 .btn-or:hover { filter: brightness(1.1); }
-.passer {
-  position: absolute; bottom: 14px; left: 16px; z-index: 40;
-  color: rgba(255,255,255,.7); text-decoration: none; font-size: 14px;
-}
+.passer { position: absolute; bottom: 14px; left: 16px; z-index: 40; color: rgba(255,255,255,.7); text-decoration: none; font-size: 14px; }
 .passer:hover { color: #fff; }

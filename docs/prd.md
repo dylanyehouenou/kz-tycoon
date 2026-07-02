@@ -47,12 +47,19 @@ Public : démo "Semaine Startup" devant investisseur/formateur. Ton : **parodie 
 
 ## 4 bis. Menu de début (écran titre — style Minecraft)
 
-Écran d'accueil inspiré du **menu titre de Minecraft** : logo en haut, pile de gros
-boutons "blocky" centrés, fond illustré assombri. Style pixel cohérent avec le logo.
+Écran d'accueil inspiré du **menu titre de Minecraft**, habillé avec l'illustration
+dédiée `menuprincpal.png` (ville de nuit + tour dorée "KZ TYCOON" à droite).
+Le **titre est déjà intégré dans l'image** (enseigne de la tour) : on ne superpose PAS
+le logo. Les **boutons sont en colonne à GAUCHE**, dans l'espace de ciel libre.
 
-- **Logo** : `static/img/ui/logo.png` (pixel-art KZ TYCOON), centré en haut.
-- **Fond** : `classepov.png` **flouté + assombri** (voile sombre pour lisibilité).
-- **Boutons** (chunky, bord net, ombre portée, s'éclaircissent au survol) :
+- **Fond** : `static/img/backgrounds/menuprincpal.png` (plein écran, `cover`), + léger
+  voile/vignette sombre à gauche pour renforcer le contraste des boutons.
+- **Titre** : intégré à l'illustration (tour de droite). `logo.png` reste utilisé pour
+  la barre du haut in-game, pas sur ce menu.
+- **Animations (stylées)** : entrée des boutons en glissé/fondu depuis la gauche
+  (décalés un par un) ; survol = éclaircissement + halo doré + léger zoom ; étoiles qui
+  scintillent ; halo de la tour qui pulse ; parallax léger à la souris (optionnel).
+- **Boutons** (colonne à gauche, chunky doré, bord bleu nuit, halo au survol) :
   - **NOUVELLE PARTIE** → `/new` (si non connecté → inscription d'abord)
   - **CONTINUER** → `/continue` (charge la sauvegarde, connexion requise)
   - **CLASSEMENT** → `/leaderboard`

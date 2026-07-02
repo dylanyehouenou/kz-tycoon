@@ -45,6 +45,23 @@ Public : démo "Semaine Startup" devant investisseur/formateur. Ton : **parodie 
 - **Économie** : gérée par l'équipe de dev (valeurs par défaut équilibrées dans `config_jeu.py`,
   ajustables). Voir [technique.md](technique.md).
 
+## 4 bis. Menu de début (écran titre — style Minecraft)
+
+Écran d'accueil inspiré du **menu titre de Minecraft** : logo en haut, pile de gros
+boutons "blocky" centrés, fond illustré assombri. Style pixel cohérent avec le logo.
+
+- **Logo** : `static/img/ui/logo.png` (pixel-art KZ TYCOON), centré en haut.
+- **Fond** : `classepov.png` **flouté + assombri** (voile sombre pour lisibilité).
+- **Boutons** (chunky, bord net, ombre portée, s'éclaircissent au survol) :
+  - **NOUVELLE PARTIE** → `/new` (si non connecté → inscription d'abord)
+  - **CONTINUER** → `/continue` (charge la sauvegarde, connexion requise)
+  - **CLASSEMENT** → `/leaderboard`
+  - **SUCCÈS** → `/achievements`
+  - **CRÉDITS** → `/credits`
+  - **Connexion / Déconnexion** en coin haut-droit, selon l'état du joueur.
+- **Réalisation** : structure HTML à l'étape 4, style complet (boutons, fond, survol)
+  à l'étape 10. Couleurs uniquement via `variables.css`.
+
 ## 5. Décisions de cadrage (validées)
 
 - **Identité joueur** : comptes avec **mot de passe haché** (pas de simple pseudo).

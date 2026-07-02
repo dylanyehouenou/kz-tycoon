@@ -1,0 +1,24 @@
+/* ==========================================================================
+   variables.css — LA PALETTE OFFICIELLE de KZ TYCOON.
+
+   Toutes les couleurs du jeu DOIVENT venir d'ici (aucune couleur codée en dur
+   ailleurs). Pour changer une couleur du jeu, on la modifie une seule fois ici.
+   ========================================================================== */
+:root {
+  /* --- Couleurs imposées par la charte graphique --- */
+  --violet-profond: #5B2A86;
+  --rose-neon:      #E0399B;
+  --orange-dore:    #F5A623;
+  --bleu-nuit:      #141127;
+
+  /* --- Nuances dérivées (pour les effets, ombres, dégradés) --- */
+  --or-clair:  #FCD563;
+  --or-fonce:  #C97E10;
+  --or-ombre:  #7A4A05;
+
+  /* --- Couleurs utilitaires (texte, messages) --- */
+  --texte-clair:   #FFFFFF;
+  --texte-sombre:  #3A2405;
+  --succes:        #2ecc71;
+  --erreur:        #e74c3c;
+}

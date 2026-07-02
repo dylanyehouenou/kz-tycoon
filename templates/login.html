@@ -1,0 +1,24 @@
+{# login.html — formulaire de CONNEXION. #}
+{% extends "base.html" %}
+{% block titre %}KZ TYCOON — Connexion{% endblock %}
+
+{% block contenu %}
+<div class="contenu">
+  <form class="carte" action="{{ url_for('login') }}" method="post">
+    <h1>Connexion</h1>
+
+    <label class="champ">
+      <span>Pseudo</span>
+      <input type="text" name="pseudo" required autocomplete="username">
+    </label>
+
+    <label class="champ">
+      <span>Mot de passe</span>
+      <input type="password" name="mot_de_passe" required autocomplete="current-password">
+    </label>
+
+    <button class="btn-or" type="submit">Se connecter</button>
+    <p style="margin-top:14px">Pas de compte ? <a href="{{ url_for('register') }}" style="color:var(--orange-dore)">Inscription</a></p>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{# credits.html — CRÉDITS du jeu. #}
+{% extends "base.html" %}
+{% block titre %}KZ TYCOON — Crédits{% endblock %}
+
+{% block contenu %}
+<div class="contenu">
+  <div class="carte">
+    <h1>🎬 Crédits</h1>
+    <p><strong>KZ TYCOON</strong> — projet Semaine Startup, BTS CIEL 1ʳᵉ année.</p>
+    <p style="margin-top:10px">Un jeu point-and-click parodique assumé. 👑</p>
+    <p style="margin-top:14px">
+      <a class="btn-or" href="{{ url_for('accueil') }}">Retour au menu</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

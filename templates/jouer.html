@@ -1,0 +1,26 @@
+{# jouer.html — ÉCRAN DE JEU (placeholder étape 4).
+   À l'étape 5, cet écran deviendra le point-and-click (image + zones cliquables).
+   Pour l'instant, on affiche juste l'état de la sauvegarde pour vérifier que
+   les données circulent bien. #}
+{% extends "base.html" %}
+{% block titre %}KZ TYCOON — Partie{% endblock %}
+
+{% block contenu %}
+<div class="contenu">
+  <div class="carte">
+    <h1>Ta partie</h1>
+    <p>💰 Argent : <strong>{{ save['argent'] }} €</strong></p>
+    <p>🏆 Patrimoine total : <strong>{{ save['patrimoine_total'] }} €</strong></p>
+    <p>🏢 Étage débloqué : <strong>{{ save['etage_max'] }} / 15</strong></p>
+    <p>👆 Revenu par clic : <strong>{{ save['revenu_clic'] }} €</strong></p>
+    <p>⏳ Revenu passif : <strong>{{ save['revenu_passif'] }} €/tick</strong></p>
+
+    <p style="margin-top:18px; opacity:.8">
+      🚧 L'écran de jeu point-and-click (image + zones cliquables) arrive à l'étape 5.
+    </p>
+    <p style="margin-top:14px">
+      <a class="btn-or" href="{{ url_for('accueil') }}">Retour au menu</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

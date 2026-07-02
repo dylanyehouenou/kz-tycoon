@@ -1,0 +1,27 @@
+{# menu.html — le MENU PRINCIPAL (style Minecraft, boutons à gauche).
+   Structure posée ici ; les animations/polish viennent à l'étape 10. #}
+{% extends "base.html" %}
+{% block titre %}KZ TYCOON — Menu{% endblock %}
+
+{% block contenu %}
+<section class="menu-principal">
+  <div class="menu-boutons">
+    <p class="menu-sous-titre">Deviens le prof le plus riche du monde</p>
+
+    {# Nouvelle partie = action -> formulaire POST (remet la sauvegarde à zéro) #}
+    <form action="{{ url_for('nouvelle_partie') }}" method="post">
+      <button class="btn-menu" type="submit">Nouvelle partie</button>
+    </form>
+
+    {# Continuer = simple lien (charge la partie en cours) #}
+    <a class="btn-menu" href="{{ url_for('continuer') }}">Continuer</a>
+
+    <div class="menu-ligne">
+      <a class="btn-menu" href="{{ url_for('leaderboard') }}">Classement</a>
+      <a class="btn-menu" href="{{ url_for('achievements') }}">Succès</a>
+    </div>
+
+    <a class="btn-menu" href="{{ url_for('credits') }}">Crédits</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,32 @@
+{# leaderboard.html — CLASSEMENT Top 10 (données réelles depuis SQLite). #}
+{% extends "base.html" %}
+{% block titre %}KZ TYCOON — Classement{% endblock %}
+
+{% block contenu %}
+<div class="contenu">
+  <h1 style="text-align:center; color:var(--orange-dore)">🏆 Top 10 des profs les plus riches</h1>
+
+  {% if top %}
+    <table class="table-top">
+      <thead>
+        <tr><th>#</th><th>Pseudo</th><th>Patrimoine</th></tr>
+      </thead>
+      <tbody>
+        {% for ligne in top %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ ligne['pseudo'] }}</td>
+            <td>{{ ligne['patrimoine'] }} €</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p style="text-align:center; margin-top:20px">Aucun joueur pour l'instant. Sois le premier !</p>
+  {% endif %}
+
+  <p style="text-align:center; margin-top:20px">
+    <a class="btn-or" href="{{ url_for('accueil') }}">Retour au menu</a>
+  </p>
+</div>
+{% endblock %}

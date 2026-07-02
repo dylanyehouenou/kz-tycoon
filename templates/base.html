@@ -1,0 +1,51 @@
+{# ==========================================================================
+   base.html — GABARIT commun à toutes les pages.
+   Les autres templates font {% extends "base.html" %} et remplissent
+   le bloc "contenu". Ça évite de répéter l'en-tête/menu partout.
+   ========================================================================== #}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titre %}KZ TYCOON{% endblock %}</title>
+  {# La palette DOIT être chargée avant le style qui l'utilise #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="{{ url_for('accueil') }}">
+      <img src="{{ url_for('static', filename='img/ui/logo.png') }}" alt="KZ TYCOON" height="42">
+    </a>
+    <nav class="nav">
+      {% if session.get('pseudo') %}
+        {# Joueur connecté #}
+        <span class="salut">👋 {{ session['pseudo'] }}</span>
+        <a href="{{ url_for('leaderboard') }}">Classement</a>
+        <form action="{{ url_for('logout') }}" method="post" class="inline">
+          <button type="submit">Déconnexion</button>
+        </form>
+      {% else %}
+        {# Visiteur non connecté #}
+        <a href="{{ url_for('login') }}">Connexion</a>
+        <a href="{{ url_for('register') }}">Inscription</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  {# Messages flash : succès (vert) ou erreur (rouge) #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash">
+        {% for categorie, message in messages %}
+          <li class="flash-{{ categorie }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  {# Chaque page injecte son contenu ici #}
+  {% block contenu %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,24 @@
+{# register.html — formulaire d'INSCRIPTION (création de compte). #}
+{% extends "base.html" %}
+{% block titre %}KZ TYCOON — Inscription{% endblock %}
+
+{% block contenu %}
+<div class="contenu">
+  <form class="carte" action="{{ url_for('register') }}" method="post">
+    <h1>Créer un compte</h1>
+
+    <label class="champ">
+      <span>Pseudo (3 caractères min)</span>
+      <input type="text" name="pseudo" required minlength="3" autocomplete="username">
+    </label>
+
+    <label class="champ">
+      <span>Mot de passe (4 caractères min)</span>
+      <input type="password" name="mot_de_passe" required minlength="4" autocomplete="new-password">
+    </label>
+
+    <button class="btn-or" type="submit">S'inscrire</button>
+    <p style="margin-top:14px">Déjà un compte ? <a href="{{ url_for('login') }}" style="color:var(--orange-dore)">Se connecter</a></p>
+  </form>
+</div>
+{% endblock %}

@@ -33,3 +33,6 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
+
+# Maquettes de previsualisation (fichiers jetables, hors build)
+preview_*.html

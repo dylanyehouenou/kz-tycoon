@@ -1,0 +1,8 @@
+# Dépendances Python du projet KZ TYCOON.
+# Installation :  pip install -r requirements.txt
+
+Flask==3.0.3           # Micro-framework web : routes, templates Jinja, sessions
+python-dotenv==1.0.1   # Charge les variables secrètes depuis le fichier .env
+
+# Remarque : Werkzeug (utilisé pour HACHER les mots de passe) est installé
+# automatiquement en même temps que Flask, pas besoin de l'ajouter ici.

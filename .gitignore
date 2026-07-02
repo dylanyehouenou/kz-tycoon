@@ -1,0 +1,34 @@
+# ==========================================================
+#  .gitignore — fichiers que Git ne doit JAMAIS suivre
+# ==========================================================
+
+# --- Python : fichiers compilés / cache ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Base de données SQLite : on ne versionne jamais les données ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- SECRETS : le vrai fichier .env ne doit JAMAIS être versionné ---
+.env
+
+# --- Environnement virtuel Python ---
+venv/
+.venv/
+env/
+
+# --- Dossier d'instance Flask ---
+instance/
+
+# --- Sauvegardes de parties (données joueur) : on garde le dossier, pas le contenu ---
+saves/*
+!saves/.gitkeep
+
+# --- Divers systèmes d'exploitation / éditeurs ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

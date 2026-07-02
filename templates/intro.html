@@ -1,0 +1,74 @@
+{# intro.html — Cinématique d'ouverture + faux site d'emploi.
+   Page PLEIN ÉCRAN autonome (pas de topbar) pour l'ambiance cinématique. #}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KZ TYCOON — Intro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/intro.css') }}">
+</head>
+<body>
+  <div class="intro">
+    {# Fond : le double écran de KZ (flou -> net) #}
+    <div class="intro-bg"></div>
+
+    {# Paupières qui s'écartent (yeux qui s'ouvrent) #}
+    <div class="paupiere haut"></div>
+    <div class="paupiere bas"></div>
+
+    {# Bandeau "utilisateur bloqué" #}
+    <div class="banniere-bloque" id="banniere">⛔ UTILISATEUR BLOQUÉ ⛔</div>
+
+    {# Notification "Biscotte" (le faux Discord) d'Océane, en bas-droite #}
+    <div class="notif" id="notif">
+      <div class="notif-avatar">
+        <img src="{{ url_for('static', filename='img/ui/biscotte.png') }}" alt="Biscotte">
+      </div>
+      <div class="notif-corps">
+        <div class="notif-titre">Océane <span class="notif-app">• Biscotte</span></div>
+        <div class="notif-msg">Je te quitte, tu passes trop de temps sur Biscotte 💔</div>
+      </div>
+    </div>
+
+    {# Overlay "KZ a tout perdu" + bouton vers le site d'emploi #}
+    <div class="overlay-perdu" id="overlayPerdu">
+      <h1>KZ A TOUT PERDU.</h1>
+      <button class="btn-or" id="btnMetier" type="button">Chercher un métier →</button>
+    </div>
+
+    {# Faux site d'emploi "VIENS GAGNER ARGENT" #}
+    <div class="site-emploi" id="siteEmploi">
+      <div class="fenetre">
+        <div class="barre-fenetre">
+          <span class="url">🔒 https://vienschercherargent.kz</span>
+          <span>—  ▢  ✕</span>
+        </div>
+        <div class="site-contenu">
+          {# Logo du site fourni par l'équipe #}
+          <img class="site-logo-img"
+               src="{{ url_for('static', filename='img/ui/logovienchercherargent.png') }}"
+               alt="Viens Chercher Argent">
+          <p class="site-slogan">Le job de tes rêves (ou pas) t'attend, KZ.</p>
+          {# Les annonces sont ajoutées par intro.js #}
+          <div class="annonces" id="annonces"></div>
+        </div>
+      </div>
+    </div>
+
+    {# Popup de résultat d'une candidature #}
+    <div class="popup" id="popup">
+      <div class="popup-boite">
+        <p id="popupMsg"></p>
+        <button class="btn-or" id="popupOk" type="button">OK</button>
+      </div>
+    </div>
+
+    {# Petit lien pour sauter l'intro (pratique pour la démo) #}
+    <a class="passer" href="{{ url_for('jouer') }}">Passer l'intro ⏭</a>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/intro.js') }}"></script>
+</body>
+</html>

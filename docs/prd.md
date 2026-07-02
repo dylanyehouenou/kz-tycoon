@@ -21,6 +21,24 @@ Public : démo "Semaine Startup" devant investisseur/formateur. Ton : **parodie 
 7. Progression sur **15 étages** (chaque étage = un nouvel écran point-and-click).
 8. **Écran de fin** : confettis + texte de parodie.
 
+## 2 bis. Intro cinématique + première quête (implémentée)
+
+**Cinématique** (route `/intro`, jouée après « Nouvelle partie ») :
+1. Réveil : le double écran (`setuppov`) passe de flou/sombre à net (paupières qui s'ouvrent).
+2. Bandeau rouge « UTILISATEUR BLOQUÉ ».
+3. Notification **Biscotte** (le faux Discord, icône `biscotte.png`) d'Océane :
+   *« Je te quitte, tu passes trop de temps sur Biscotte 💔 »*.
+4. Overlay « KZ A TOUT PERDU » + bouton « Chercher un métier ».
+
+**Première quête — faux site d'emploi** (HTML fictif façon parodie GTA) :
+- Logo `logovienchercherargent.png` → site **« Viens Chercher Argent »**.
+- Annonces parodiques cliquables ; toutes refusent KZ **sauf « Professeur à Ynov »** (✅).
+- Une fois accepté → bouton « Commencer à Ynov → » qui mène à l'écran de jeu (`/jouer`).
+- « Passer l'intro ⏭ » disponible (pratique pour la démo).
+
+Marques fictives (parodie, façon GTA) : **Biscotte** (= Discord), **Viens Chercher Argent**
+(= site d'emploi), **Ynov** (l'école qui embauche KZ).
+
 ## 3. Fonctionnalités (MVP)
 
 | # | Fonctionnalité | Priorité |

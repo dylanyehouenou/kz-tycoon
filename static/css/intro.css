@@ -1,0 +1,153 @@
+/* ==========================================================================
+   intro.css — Cinématique d'ouverture + faux site d'emploi "VIENS GAGNER ARGENT".
+   Couleurs via variables.css. Style "pixel/parodie" (façon UI fictive de jeu).
+   ========================================================================== */
+
+/* Police pixel pour les titres (repli monospace si pas d'internet) */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@500;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sans-serif; }
+
+/* Conteneur plein écran */
+.intro { position: fixed; inset: 0; overflow: hidden; color: var(--texte-clair); }
+
+/* Fond = le double écran de KZ, part flou/sombre puis devient net (yeux qui s'ouvrent) */
+.intro-bg {
+  position: absolute; inset: 0;
+  background: url("/static/img/backgrounds/setuppov.png") center/cover no-repeat;
+  filter: blur(22px) brightness(.2);
+  transform: scale(1.06);
+  animation: reveil 2.6s ease-out forwards;
+}
+@keyframes reveil {
+  0%   { filter: blur(22px) brightness(.15); transform: scale(1.10); }
+  55%  { filter: blur(8px)  brightness(.5);  }
+  70%  { filter: blur(10px) brightness(.35); } /* petit clignement */
+  100% { filter: blur(0)    brightness(1);   transform: scale(1); }
+}
+
+/* Paupières (deux bandes noires qui s'écartent) */
+.paupiere { position: absolute; left: 0; width: 100%; height: 52%; background: #000; z-index: 30; }
+.paupiere.haut { top: 0;    animation: paupiereHaut 2.6s ease-out forwards; }
+.paupiere.bas  { bottom: 0; animation: paupiereBas  2.6s ease-out forwards; }
+@keyframes paupiereHaut {
+  0% { transform: translateY(0); } 55% { transform: translateY(-85%); }
+  70% { transform: translateY(-70%); } 100% { transform: translateY(-100%); }
+}
+@keyframes paupiereBas {
+  0% { transform: translateY(0); } 55% { transform: translateY(85%); }
+  70% { transform: translateY(70%); } 100% { transform: translateY(100%); }
+}
+
+/* Bandeau "UTILISATEUR BLOQUÉ" en haut */
+.banniere-bloque {
+  position: absolute; top: 0; left: 0; width: 100%; z-index: 25;
+  text-align: center; padding: 12px; letter-spacing: 2px;
+  font-family: 'Press Start 2P', monospace; font-size: 14px;
+  color: #fff; background: var(--erreur);
+  box-shadow: 0 3px 0 rgba(0,0,0,.4);
+  transform: translateY(-100%); transition: transform .5s ease;
+}
+.banniere-bloque.visible { transform: translateY(0); }
+
+/* Notification Discord (bas-droite), style bloc/pixel */
+.notif {
+  position: absolute; right: 22px; bottom: 22px; z-index: 26;
+  display: flex; gap: 12px; align-items: center;
+  width: 340px; padding: 14px; border-radius: 10px;
+  background: #1e1f22; border: 3px solid var(--violet-profond); /* couleurs Biscotte */
+  box-shadow: 0 8px 24px rgba(0,0,0,.6);
+  transform: translateX(120%); opacity: 0; transition: transform .5s ease, opacity .5s ease;
+}
+.notif.visible { transform: translateX(0); opacity: 1; }
+.notif-avatar {
+  flex: 0 0 46px; height: 46px; border-radius: 10px; overflow: hidden;
+  background: var(--violet-profond);
+}
+.notif-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.notif-titre { font-weight: 700; }
+.notif-app { color: #9aa0ff; font-size: 12px; }
+.notif-msg { font-size: 14px; color: #dbdee1; margin-top: 3px; }
+
+/* Overlay "KZ a tout perdu" + bouton */
+.overlay-perdu {
+  position: absolute; inset: 0; z-index: 27;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 22px; background: rgba(0,0,0,.55); text-align: center;
+}
+.overlay-perdu.visible { display: flex; animation: fondu .6s ease; }
+.overlay-perdu h1 {
+  font-family: 'Press Start 2P', monospace; font-size: 26px; color: var(--erreur);
+  text-shadow: 0 3px 0 #000;
+}
+@keyframes fondu { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Faux site d'emploi ---------- */
+.site-emploi {
+  position: absolute; inset: 0; z-index: 28; display: none;
+  align-items: center; justify-content: center; background: rgba(10,8,25,.75);
+}
+.site-emploi.visible { display: flex; animation: fondu .4s ease; }
+.fenetre {
+  width: min(760px, 92vw); max-height: 88vh; overflow: hidden;
+  border: 3px solid var(--bleu-nuit); border-radius: 12px;
+  background: #f4f1fa; color: var(--bleu-nuit); display: flex; flex-direction: column;
+}
+.barre-fenetre {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; background: var(--violet-profond); color: #fff; font-size: 14px;
+}
+.barre-fenetre .url { font-family: monospace; }
+.site-contenu { padding: 18px 20px; overflow-y: auto; }
+.site-logo-img {
+  display: block; margin: 0 auto 12px; width: min(420px, 85%); height: auto;
+  border-radius: 10px;
+}
+.site-slogan { text-align: center; margin-bottom: 16px; color: #555; }
+
+.annonces { display: grid; gap: 12px; }
+.annonce {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: 10px; background: #fff;
+  border: 2px solid #e0d8ef;
+}
+.annonce .emoji { font-size: 30px; }
+.annonce .infos { flex: 1; }
+.annonce .titre { font-weight: 700; }
+.annonce .desc { font-size: 13px; color: #666; }
+.annonce.ynov { border-color: var(--orange-dore); background: #fff8ec; }
+.annonce button {
+  cursor: pointer; font-weight: 700; color: var(--bleu-nuit);
+  background: var(--orange-dore); border: 2px solid var(--bleu-nuit);
+  border-radius: 8px; padding: 8px 14px;
+}
+.annonce button:hover { filter: brightness(1.08); }
+
+/* Popup résultat de candidature */
+.popup {
+  position: absolute; inset: 0; z-index: 29; display: none;
+  align-items: center; justify-content: center; background: rgba(0,0,0,.6);
+}
+.popup.visible { display: flex; }
+.popup-boite {
+  width: min(440px, 90vw); padding: 24px; text-align: center;
+  background: var(--bleu-nuit); border: 3px solid var(--orange-dore); border-radius: 12px;
+}
+.popup-boite p { margin-bottom: 18px; font-size: 16px; }
+
+/* Boutons dorés réutilisés + lien "passer" */
+.btn-or {
+  cursor: pointer; text-decoration: none; display: inline-block;
+  font-weight: 800; color: var(--texte-sombre);
+  padding: 14px 22px; border-radius: 14px; border: 3px solid var(--bleu-nuit);
+  background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 55%, var(--or-fonce));
+  box-shadow: 0 5px 0 var(--or-ombre);
+}
+.btn-or:hover { filter: brightness(1.1); }
+.passer {
+  position: absolute; bottom: 14px; left: 16px; z-index: 40;
+  color: rgba(255,255,255,.7); text-decoration: none; font-size: 14px;
+}
+.passer:hover { color: #fff; }

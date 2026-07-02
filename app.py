@@ -135,8 +135,16 @@ def nouvelle_partie():
         flash("Connecte-toi pour lancer une partie.", "erreur")
         return redirect(url_for("login"))
     database.reset_sauvegarde(joueur_id)
-    flash("Nouvelle partie lancée ! KZ repart de zéro.", "succes")
-    return redirect(url_for("jouer"))
+    # Nouvelle partie -> on joue d'abord la cinématique d'introduction.
+    return redirect(url_for("intro"))
+
+
+@app.route("/intro")
+def intro():
+    """Cinématique d'ouverture : Océane quitte KZ, puis le faux site d'emploi."""
+    if joueur_connecte() is None:
+        return redirect(url_for("login"))
+    return render_template("intro.html")
 
 
 @app.route("/continue")

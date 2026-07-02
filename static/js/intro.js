@@ -85,3 +85,68 @@ function postuler(job) {
   }
   el("popup").classList.add("visible");
 }
+
+/* ==========================================================================
+   ZOOM molette + déplacement (glisser) + double-clic pour réinitialiser.
+   On transforme la couche #zoom : translate(tx,ty) scale(s), origine (0,0).
+   ========================================================================== */
+(function () {
+  const intro = el("intro");
+  const zoom = el("zoom");
+  if (!intro || !zoom) return;
+
+  let s = 1, tx = 0, ty = 0;          // échelle et déplacement courants
+  const S_MIN = 1, S_MAX = 4;
+
+  function appliquer() {
+    zoom.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + s + ")";
+    intro.classList.toggle("zoomable", s > 1);
+  }
+
+  // Empêche de se déplacer hors de l'image (garde l'écran couvert).
+  function borner(rect) {
+    const minX = rect.width * (1 - s), minY = rect.height * (1 - s);
+    tx = Math.min(0, Math.max(minX, tx));
+    ty = Math.min(0, Math.max(minY, ty));
+  }
+
+  // Molette : zoom vers le curseur. Au-dessus du site (non zoomé), on laisse défiler la liste.
+  intro.addEventListener("wheel", (e) => {
+    if (s <= 1 && e.target.closest && e.target.closest("#navigateur")) return;
+    e.preventDefault();
+    const rect = intro.getBoundingClientRect();
+    const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+    const wx = (cx - tx) / s, wy = (cy - ty) / s;     // point "monde" sous le curseur
+    const facteur = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    s = Math.min(S_MAX, Math.max(S_MIN, s * facteur));
+    tx = cx - wx * s; ty = cy - wy * s;               // garder ce point sous le curseur
+    if (s === 1) { tx = 0; ty = 0; }
+    borner(rect);
+    appliquer();
+  }, { passive: false });
+
+  // Glisser pour se déplacer (seulement quand c'est zoomé).
+  let drag = false, lastX = 0, lastY = 0;
+  intro.addEventListener("mousedown", (e) => {
+    if (s <= 1) return;
+    drag = true; lastX = e.clientX; lastY = e.clientY;
+    intro.classList.add("grabbing");
+  });
+  window.addEventListener("mousemove", (e) => {
+    if (!drag) return;
+    tx += e.clientX - lastX; ty += e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    borner(intro.getBoundingClientRect());
+    appliquer();
+  });
+  window.addEventListener("mouseup", () => { drag = false; intro.classList.remove("grabbing"); });
+
+  // Double-clic (hors bouton) : réinitialise le zoom.
+  intro.addEventListener("dblclick", (e) => {
+    if (e.target.closest && e.target.closest("button")) return;
+    s = 1; tx = 0; ty = 0; appliquer();
+  });
+
+  // On efface l'indice de zoom après quelques secondes.
+  setTimeout(() => { const h = el("zoomHint"); if (h) h.classList.add("efface"); }, 6000);
+})();

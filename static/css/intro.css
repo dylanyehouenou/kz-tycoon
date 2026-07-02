@@ -9,17 +9,22 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@500;700&display=swap');
 
-/* ---- Positions des 2 écrans, en % de l'image (faciles à AJUSTER ici) ---- */
+/* ---- Positions/angles des 2 écrans, en % de l'image (faciles à AJUSTER ici) ---- */
 :root {
   /* Écran GAUCHE */
-  --eg-left: 17%;  --eg-top: 23%;  --eg-w: 32%;  --eg-h: 32%;
+  --eg-left: 17%;  --eg-top: 23%;  --eg-w: 32%;  --eg-h: 32%;  --eg-roty: -6deg;
   /* Écran DROIT */
-  --ed-left: 52%;  --ed-top: 24%;  --ed-w: 32%;  --ed-h: 32%;
+  --ed-left: 52%;  --ed-top: 24%;  --ed-w: 32%;  --ed-h: 32%;  --ed-roty: 6deg;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sans-serif; }
 .intro { position: fixed; inset: 0; background: #000; }
+.intro.zoomable { cursor: grab; }
+.intro.grabbing { cursor: grabbing; }
+
+/* Couche de zoom/déplacement : on la transforme au JS (molette + glisser) */
+.zoom { position: absolute; inset: 0; transform-origin: 0 0; will-change: transform; }
 
 /* -------- La scène (image de fond, ratio exact = pas de décalage) -------- */
 .scene {
@@ -28,8 +33,9 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
   aspect-ratio: 2816 / 1536;
   background: url("/static/img/backgrounds/setuppov.png") center / 100% 100% no-repeat;
   overflow: hidden;
-  filter: blur(22px) brightness(.2);       /* départ flou/sombre */
-  animation: reveil 2.6s ease-out forwards; /* "yeux qui s'ouvrent" */
+  perspective: 1600px;                       /* donne la profondeur 3D aux écrans */
+  filter: blur(22px) brightness(.2);         /* départ flou/sombre */
+  animation: reveil 2.6s ease-out forwards;  /* "yeux qui s'ouvrent" */
 }
 @keyframes reveil {
   0%   { filter: blur(22px) brightness(.15); }
@@ -50,8 +56,20 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
   position: absolute; overflow: hidden;
   container-type: size;   /* permet d'utiliser des tailles en cqw = % de l'écran */
 }
-.ecran-gauche { left: var(--eg-left); top: var(--eg-top); width: var(--eg-w); height: var(--eg-h); }
-.ecran-droit  { left: var(--ed-left); top: var(--ed-top); width: var(--ed-w); height: var(--ed-h); }
+/* Légère inclinaison 3D pour "coller" à l'angle des moniteurs de l'image */
+.ecran-gauche {
+  left: var(--eg-left); top: var(--eg-top); width: var(--eg-w); height: var(--eg-h);
+  transform: rotateY(var(--eg-roty));
+}
+.ecran-droit  {
+  left: var(--ed-left); top: var(--ed-top); width: var(--ed-w); height: var(--ed-h);
+  transform: rotateY(var(--ed-roty));
+}
+/* Reflet de vitre par-dessus l'écran (ne bloque pas les clics) */
+.ecran::after {
+  content: ""; position: absolute; inset: 0; z-index: 9; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 38%);
+}
 
 /* ---------- ÉCRAN DROIT : app Biscotte (bandeau bloqué + notif) ---------- */
 .bloque-strip {
@@ -144,3 +162,12 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 .btn-or:hover { filter: brightness(1.1); }
 .passer { position: absolute; bottom: 14px; left: 16px; z-index: 40; color: rgba(255,255,255,.7); text-decoration: none; font-size: 14px; }
 .passer:hover { color: #fff; }
+
+/* Indice de zoom, en haut au centre, s'efface tout seul */
+.zoom-hint {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 40;
+  background: rgba(20,17,39,.7); color: #fff; font-size: 13px;
+  padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(245,166,35,.5);
+  transition: opacity .6s ease;
+}
+.zoom-hint.efface { opacity: 0; }

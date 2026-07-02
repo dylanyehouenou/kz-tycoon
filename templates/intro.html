@@ -1,5 +1,5 @@
-{# intro.html — Intro IMMERSIVE : tout se passe SUR les écrans du PC de KZ.
-   Page plein écran autonome (pas de topbar) pour l'ambiance cinématique. #}
+{# intro.html — Intro IMMERSIVE + ZOOM molette + perspective 3D des écrans.
+   Page plein écran autonome (pas de topbar). #}
 <!doctype html>
 <html lang="fr">
 <head>
@@ -10,56 +10,61 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/intro.css') }}">
 </head>
 <body>
-  <div class="intro">
+  <div class="intro" id="intro">
 
-    {# La scène = l'image du setup, au ratio exact (positions en % fiables) #}
-    <div class="scene" id="scene">
+    {# Couche de ZOOM/déplacement (transformée par la molette et le glisser) #}
+    <div class="zoom" id="zoom">
 
-      {# ---------- ÉCRAN GAUCHE : navigateur "Viens Chercher Argent" ---------- #}
-      <div class="ecran ecran-gauche" id="ecranG">
-        {# Icône posée sur le moniteur : on clique dessus pour ouvrir le site #}
-        <button class="icone-nav" id="btnMetier" type="button">
-          <span class="rond">🌐</span>
-          <span class="txt">Viens Chercher Argent</span>
-        </button>
+      {# La scène = l'image du setup, au ratio exact (positions en % fiables) #}
+      <div class="scene" id="scene">
 
-        {# Le faux site, qui remplit le moniteur une fois ouvert #}
-        <div class="navigateur" id="navigateur">
-          <div class="nav-barre">🔒 https://vienschercherargent.kz</div>
-          <div class="nav-page">
-            <img class="site-logo-img"
-                 src="{{ url_for('static', filename='img/ui/logovienchercherargent.png') }}"
-                 alt="Viens Chercher Argent">
-            <p class="site-slogan">Le job de tes rêves (ou pas) t'attend, KZ.</p>
-            <div class="annonces" id="annonces"></div> {# rempli par intro.js #}
+        {# ---------- ÉCRAN GAUCHE : navigateur "Viens Chercher Argent" ---------- #}
+        <div class="ecran ecran-gauche" id="ecranG">
+          <button class="icone-nav" id="btnMetier" type="button">
+            <span class="rond">🌐</span>
+            <span class="txt">Viens Chercher Argent</span>
+          </button>
+
+          <div class="navigateur" id="navigateur">
+            <div class="nav-barre">🔒 https://vienschercherargent.kz</div>
+            <div class="nav-page">
+              <img class="site-logo-img"
+                   src="{{ url_for('static', filename='img/ui/logovienchercherargent.png') }}"
+                   alt="Viens Chercher Argent">
+              <p class="site-slogan">Le job de tes rêves (ou pas) t'attend, KZ.</p>
+              <div class="annonces" id="annonces"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {# ---------- ÉCRAN DROIT : app "Biscotte" (bloqué + notif d'Océane) ---------- #}
-      <div class="ecran ecran-droit" id="ecranD">
-        <div class="bloque-strip" id="bloqueTag">⛔ UTILISATEUR BLOQUÉ ⛔</div>
-        <div class="notif" id="notif">
-          <div class="notif-avatar">
-            <img src="{{ url_for('static', filename='img/ui/biscotte.png') }}" alt="Biscotte">
-          </div>
-          <div class="notif-corps">
-            <div class="notif-titre">Océane <span class="notif-app">• Biscotte</span></div>
-            <div class="notif-msg">Je te quitte, tu passes trop de temps sur Biscotte 💔</div>
+        {# ---------- ÉCRAN DROIT : app "Biscotte" (bloqué + notif d'Océane) ---------- #}
+        <div class="ecran ecran-droit" id="ecranD">
+          <div class="bloque-strip" id="bloqueTag">⛔ UTILISATEUR BLOQUÉ ⛔</div>
+          <div class="notif" id="notif">
+            <div class="notif-avatar">
+              <img src="{{ url_for('static', filename='img/ui/biscotte.png') }}" alt="Biscotte">
+            </div>
+            <div class="notif-corps">
+              <div class="notif-titre">Océane <span class="notif-app">• Biscotte</span></div>
+              <div class="notif-msg">Je te quitte, tu passes trop de temps sur Biscotte 💔</div>
+            </div>
           </div>
         </div>
-      </div>
 
-    </div>{# /scene #}
+      </div>{# /scene #}
+    </div>{# /zoom #}
 
-    {# Paupières (yeux qui s'ouvrent) au-dessus de la scène #}
+    {# Paupières (yeux qui s'ouvrent), au-dessus de la scène #}
     <div class="paupiere haut"></div>
     <div class="paupiere bas"></div>
 
-    {# Narration en bas #}
+    {# Narration #}
     <div class="legende" id="legende"></div>
 
-    {# Popup de résultat d'une candidature #}
+    {# Indice de contrôle du zoom #}
+    <div class="zoom-hint" id="zoomHint">🖱️ Molette : zoomer · Glisser : se déplacer · Double-clic : réinitialiser</div>
+
+    {# Popup de résultat de candidature #}
     <div class="popup" id="popup">
       <div class="popup-boite">
         <p id="popupMsg"></p>
@@ -67,7 +72,7 @@
       </div>
     </div>
 
-    {# Sauter l'intro (pratique pour la démo) #}
+    {# Sauter l'intro #}
     <a class="passer" href="{{ url_for('jouer') }}">Passer l'intro ⏭</a>
   </div>
 

@@ -10,11 +10,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@500;700&display=swap');
 
 /* ---- Positions/angles des 2 écrans, en % de l'image (faciles à AJUSTER ici) ---- */
+/* Mesurés sur la nouvelle image "écrans noirs" (1698x926). Écrans bien de face -> 0° d'inclinaison. */
 :root {
   /* Écran GAUCHE */
-  --eg-left: 17%;  --eg-top: 23%;  --eg-w: 32%;  --eg-h: 32%;  --eg-roty: -6deg;
+  --eg-left: 16.5%; --eg-top: 18%;  --eg-w: 31%;  --eg-h: 34%;  --eg-roty: 0deg;
   /* Écran DROIT */
-  --ed-left: 52%;  --ed-top: 24%;  --ed-w: 32%;  --ed-h: 32%;  --ed-roty: 6deg;
+  --ed-left: 49%;   --ed-top: 18%;  --ed-w: 33%;  --ed-h: 34%;  --ed-roty: 0deg;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,8 +30,8 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 /* -------- La scène (image de fond, ratio exact = pas de décalage) -------- */
 .scene {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: min(100vw, calc(100vh * 2816 / 1536));
-  aspect-ratio: 2816 / 1536;
+  width: min(100vw, calc(100vh * 1698 / 926));
+  aspect-ratio: 1698 / 926;
   background: url("/static/img/backgrounds/setuppov.png") center / 100% 100% no-repeat;
   overflow: hidden;
   perspective: 1600px;                       /* donne la profondeur 3D aux écrans */

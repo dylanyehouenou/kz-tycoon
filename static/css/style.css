@@ -76,7 +76,7 @@ body {
 /* ---------- Menu principal (structure ; polish = étape 10) ---------- */
 .menu-principal {
   min-height: calc(100vh - 64px);
-  background: url("/static/img/backgrounds/menuprincpal.png") center/cover no-repeat;
+  background: url("../img/backgrounds/menuprincpal.png") center/cover no-repeat;
   display: flex; align-items: center;
 }
 /* voile sombre à gauche pour lisibilité des boutons */

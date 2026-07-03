@@ -31,7 +31,7 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
   --scw: 2752; --sch: 1536;
   width: min(100vw, calc(100vh * var(--scw) / var(--sch)));
   aspect-ratio: var(--scw) / var(--sch);
-  background: var(--scene-bg, url("/static/img/backgrounds/setuppov.png")) center / 100% 100% no-repeat;
+  background: var(--scene-bg, url("../img/backgrounds/setuppov.png")) center / 100% 100% no-repeat;
   overflow: hidden;
   perspective: 1600px;                       /* donne la profondeur 3D aux écrans */
   filter: blur(22px) brightness(.2);         /* départ flou/sombre */
@@ -76,7 +76,7 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 .ecran {
   background:
     linear-gradient(rgba(10,8,24,.5), rgba(10,8,24,.72)),
-    url("/static/img/ui/fondecrankz.png") center / cover no-repeat;
+    url("../img/ui/fondecrankz.png") center / cover no-repeat;
 }
 
 /* Désactive la sélection de texte (évite le surlignage bleu moche partout) */
@@ -303,7 +303,7 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 /* Pièce à ramasser dans la salle = une étoile (asset), propre et lisible */
 .avion-part {
   position: absolute; z-index: 6; width: 64px; height: 64px; border: none; padding: 0; cursor: pointer;
-  background-color: transparent; background-image: url("/static/img/ui/star.png");
+  background-color: transparent; background-image: url("../img/ui/star.png");
   background-size: contain; background-repeat: no-repeat; background-position: center;
   filter: drop-shadow(0 0 14px rgba(252,213,99,.95)); animation: pulseAvion 1s ease-in-out infinite;
 }
@@ -351,7 +351,7 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 /* Vignette d'une pièce (menu de suivi) */
 .piece-thumb {
   width: 58px; height: 44px; flex-shrink: 0; background-color: transparent;
-  background-image: url("/static/img/ui/pieceavion.png"); background-size: 500% 200%; background-repeat: no-repeat;
+  background-image: url("../img/ui/pieceavion.png"); background-size: 500% 200%; background-repeat: no-repeat;
 }
 .piece-thumb.manquante { filter: grayscale(1) brightness(.45); opacity: .55; }
 .avion-fini { width: 100%; border-radius: 12px; margin-top: 10px; display: block; }
@@ -568,7 +568,7 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 .astuce {
   position: fixed; right: 20px; bottom: 20px; z-index: 110;
   width: min(400px, 46vw); aspect-ratio: 1536 / 1024;   /* ratio exact de bulle.png */
-  background: url("/static/img/ui/bulle.png") center / 100% 100% no-repeat;
+  background: url("../img/ui/bulle.png") center / 100% 100% no-repeat;
   pointer-events: none;                                  /* décoratif : ne bloque aucun clic */
   opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease;
 }

@@ -14,24 +14,22 @@ import config_jeu
 
 load_dotenv()
 
-_CF_ACCOUNT  = os.environ.get("CF_ACCOUNT_ID", "")
-_CF_TOKEN    = os.environ.get("CF_API_TOKEN",  "")
-_D1_DB_ID    = os.environ.get("D1_DATABASE_ID", "")
-_D1_URL      = f"https://api.cloudflare.com/client/v4/accounts/{_CF_ACCOUNT}/d1/database/{_D1_DB_ID}/query"
+_PROXY_URL    = os.environ.get("D1_PROXY_URL", "https://kz-tycoon-d1-proxy.dylanyehouenou344.workers.dev")
+_PROXY_SECRET = os.environ.get("D1_PROXY_SECRET", "kztycoon_d1_proxy_2026")
 
 
 # ==========================================================================
-#  REQUÊTES D1
+#  REQUÊTES D1 (via Worker proxy)
 # ==========================================================================
 def _query(sql, params=None):
-    """Envoie une requête SQL à Cloudflare D1 et renvoie la liste de résultats."""
+    """Envoie une requête SQL au Worker Cloudflare et renvoie la liste de résultats."""
     payload = {"sql": sql}
     if params:
         payload["params"] = [str(p) if p is not None else None for p in params]
     r = requests.post(
-        _D1_URL,
+        _PROXY_URL,
         headers={
-            "Authorization": f"Bearer {_CF_TOKEN}",
+            "X-Worker-Secret": _PROXY_SECRET,
             "Content-Type": "application/json",
         },
         json=payload,
@@ -39,10 +37,9 @@ def _query(sql, params=None):
     )
     r.raise_for_status()
     data = r.json()
-    # D1 renvoie une liste de résultats (un par statement)
-    if isinstance(data, list):
-        return data[0].get("results", [])
-    return data.get("result", [{}])[0].get("results", [])
+    if not data.get("success"):
+        raise RuntimeError(data.get("error", "D1 query failed"))
+    return data.get("results", [])
 
 
 def _execute(sql, params=None):

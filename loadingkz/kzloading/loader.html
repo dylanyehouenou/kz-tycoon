@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/loader.css">
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+</head>
+
+<body>
+    <div id="loader">
+        <transition name="fade">
+            <div v-if="showed">
+                <img id="loadingCharacter" :src="characterImage" :class="characterClass">
+                <img id="loadingBackground" :src="backgroundImage" :class="backgroundClass">
+            </div>
+        </transition>
+        <img id="loadingLogo" src="img/logo.png">
+        <audio id="introSound" src="sound/intro.ogg" autoplay loop></audio>
+    </div>
+    <script src="js/loader.js"></script>
+</body>
+
+</html>

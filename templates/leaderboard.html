@@ -9,14 +9,16 @@
   {% if top %}
     <table class="table-top">
       <thead>
-        <tr><th>#</th><th>Pseudo</th><th>Patrimoine</th></tr>
+        <tr><th>#</th><th>Pseudo</th><th>⭐ Niveau</th><th>Patrimoine</th><th>✈️ Pièces</th></tr>
       </thead>
       <tbody>
         {% for ligne in top %}
           <tr>
             <td>{{ loop.index }}</td>
             <td>{{ ligne['pseudo'] }}</td>
-            <td>{{ ligne['patrimoine'] }} €</td>
+            <td>Nv {{ ligne['niveau'] }}</td>
+            <td>{{ ligne['patrimoine']|round|int }} €</td>
+            <td>{{ ligne['avion'] }}/10</td>
           </tr>
         {% endfor %}
       </tbody>

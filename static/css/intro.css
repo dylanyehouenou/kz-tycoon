@@ -9,13 +9,10 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@500;700&display=swap');
 
-/* ---- Positions/angles des 2 écrans, en % de l'image (faciles à AJUSTER ici) ---- */
-/* Mesurés sur la nouvelle image "écrans noirs" (1698x926). Écrans bien de face -> 0° d'inclinaison. */
+/* ---- Rectangle de l'ÉCRAN UNIQUE, en % de l'image setuppov (2752x1536) ----
+   C'est LA zone du moniteur. On l'ajuste ici jusqu'à ce que le bureau tombe pile. */
 :root {
-  /* Écran GAUCHE */
-  --eg-left: 16.5%; --eg-top: 18%;  --eg-w: 31%;  --eg-h: 34%;  --eg-roty: 0deg;
-  /* Écran DROIT */
-  --ed-left: 49%;   --ed-top: 18%;  --ed-w: 33%;  --ed-h: 34%;  --ed-roty: 0deg;
+  --ecran-left: 27%; --ecran-top: 21%; --ecran-w: 45.6%; --ecran-h: 49%;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,13 +27,16 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 /* -------- La scène (image de fond, ratio exact = pas de décalage) -------- */
 .scene {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: min(100vw, calc(100vh * 1698 / 926));
-  aspect-ratio: 1698 / 926;
-  background: url("/static/img/backgrounds/setuppov.png") center / 100% 100% no-repeat;
+  /* ratio + image de la scène courante : pilotés par le JS (voyage entre décors) */
+  --scw: 2752; --sch: 1536;
+  width: min(100vw, calc(100vh * var(--scw) / var(--sch)));
+  aspect-ratio: var(--scw) / var(--sch);
+  background: var(--scene-bg, url("/static/img/backgrounds/setuppov.png")) center / 100% 100% no-repeat;
   overflow: hidden;
   perspective: 1600px;                       /* donne la profondeur 3D aux écrans */
   filter: blur(22px) brightness(.2);         /* départ flou/sombre */
   animation: reveil 2.6s ease-out forwards;  /* "yeux qui s'ouvrent" */
+  animation-play-state: paused;              /* EN PAUSE : la vidéo joue d'abord */
 }
 @keyframes reveil {
   0%   { filter: blur(22px) brightness(.15); }
@@ -46,31 +46,354 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 }
 
 /* Paupières (bandes noires qui s'écartent), au-dessus de tout */
-.paupiere { position: absolute; left: 0; width: 100%; height: 52%; background: #000; z-index: 30; }
+.paupiere { position: absolute; left: 0; width: 100%; height: 52%; background: #000; z-index: 30; animation-play-state: paused; }
+
+/* Le réveil (scène + paupières) ne démarre QUE lorsque la vidéo est finie :
+   le JS ajoute la classe .reveil-on sur .intro à ce moment-là. */
+.intro.reveil-on .scene,
+.intro.reveil-on .paupiere { animation-play-state: running; }
 .paupiere.haut { top: 0;    animation: paupiereHaut 2.6s ease-out forwards; }
 .paupiere.bas  { bottom: 0; animation: paupiereBas  2.6s ease-out forwards; }
 @keyframes paupiereHaut { 0%{transform:translateY(0);} 55%{transform:translateY(-85%);} 70%{transform:translateY(-70%);} 100%{transform:translateY(-100%);} }
 @keyframes paupiereBas  { 0%{transform:translateY(0);} 55%{transform:translateY(85%);}  70%{transform:translateY(70%);}  100%{transform:translateY(100%);} }
 
-/* -------- Les 2 écrans (zones cliquables posées sur les moniteurs) -------- */
+/* -------- L'écran unique (le moniteur) : on y pose le bureau de l'ordi -------- */
 .ecran {
   position: absolute; overflow: hidden;
-  container-type: size;   /* permet d'utiliser des tailles en cqw = % de l'écran */
-}
-/* Légère inclinaison 3D pour "coller" à l'angle des moniteurs de l'image */
-.ecran-gauche {
-  left: var(--eg-left); top: var(--eg-top); width: var(--eg-w); height: var(--eg-h);
-  transform: rotateY(var(--eg-roty));
-}
-.ecran-droit  {
-  left: var(--ed-left); top: var(--ed-top); width: var(--ed-w); height: var(--ed-h);
-  transform: rotateY(var(--ed-roty));
+  left: var(--ecran-left); top: var(--ecran-top); width: var(--ecran-w); height: var(--ecran-h);
+  container-type: size;   /* permet d'utiliser des tailles en cqw/cqh = % de l'écran */
 }
 /* Reflet de vitre par-dessus l'écran (ne bloque pas les clics) */
 .ecran::after {
   content: ""; position: absolute; inset: 0; z-index: 9; pointer-events: none;
   background: linear-gradient(115deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 38%);
 }
+
+/* ==========================================================================
+   LE BUREAU DE L'ORDI (dans l'écran). Tailles en cqw/cqh = % de l'écran.
+   ========================================================================== */
+/* Fond d'écran du PC (image fournie) + léger voile sombre pour garder les icônes lisibles */
+.ecran {
+  background:
+    linear-gradient(rgba(10,8,24,.5), rgba(10,8,24,.72)),
+    url("/static/img/ui/fondecrankz.png") center / cover no-repeat;
+}
+
+/* Désactive la sélection de texte (évite le surlignage bleu moche partout) */
+.intro, .intro * { -webkit-user-select: none; user-select: none; }
+
+/* Le contenu du bureau "s'allume" au réveil (classe .allume ajoutée en JS) */
+.ecran .pc-barre, .ecran .bureau { opacity: 0; transition: opacity .7s ease; }
+.ecran.allume .pc-barre, .ecran.allume .bureau { opacity: 1; }
+
+/* Barre du haut : argent + horloge */
+.pc-barre {
+  position: absolute; top: 0; left: 0; width: 100%; height: 9cqh; z-index: 3;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 3cqw;
+  background: linear-gradient(180deg, rgba(20,17,39,.92), rgba(20,17,39,.5));
+  border-bottom: .4cqw solid rgba(245,166,35,.5);
+  font-family: 'Fredoka', system-ui, sans-serif; color: #fff;
+}
+.pc-argent { display: flex; align-items: center; gap: 1.4cqw; font-weight: 800; font-size: 4.4cqw; }
+.pc-argent img { width: 6cqw; height: 6cqw; object-fit: contain; }
+.pc-heure { font-family: 'Press Start 2P', monospace; font-size: 2.4cqw; color: var(--or-clair); }
+
+/* Zone des icônes */
+.bureau { position: absolute; inset: 9cqh 0 0 0; padding: 4cqw; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 3cqw 4cqw; }
+.app-icone {
+  width: 22cqw; background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 1.2cqw; color: #fff;
+  font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700; font-size: 2.6cqw; text-align: center;
+}
+.app-icone img {
+  width: 13cqw; height: 13cqw; object-fit: contain; border-radius: 3cqw; padding: 1.6cqw;
+  background: rgba(255,255,255,.06); border: .4cqw solid rgba(255,255,255,.12);
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.app-icone:hover img { transform: translateY(-1cqw) scale(1.05); background: rgba(224,57,155,.18); box-shadow: 0 0 4cqw rgba(224,57,155,.5); }
+.app-icone span { text-shadow: 0 .3cqw .6cqw #000; }
+
+/* Fenêtre à BEAUX CONTOURS (coins arrondis, barre de titre, ombre dorée) */
+.fenetre {
+  position: absolute; left: 50%; top: 12cqh; transform: translateX(-50%);
+  width: 84cqw; height: 78cqh; z-index: 5; overflow: hidden;
+  display: flex; flex-direction: column; border-radius: 3.5cqw;
+  background: #14121f; border: .5cqw solid var(--orange-dore);
+  box-shadow: 0 3cqw 8cqw rgba(0,0,0,.6), 0 0 3cqw rgba(245,166,35,.35);
+}
+.fenetre[hidden] { display: none; }
+.fenetre-barre {
+  display: flex; align-items: center; gap: 2cqw; padding: 2.2cqw 2.6cqw;
+  background: linear-gradient(180deg, var(--violet-profond), #3a1a5c);
+  border-bottom: .4cqw solid rgba(245,166,35,.5);
+}
+.fenetre-icone { width: 5.4cqw; height: 5.4cqw; object-fit: contain; border-radius: 1.2cqw; }
+.fenetre-titre { flex: 1; color: #fff; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 800; font-size: 3.4cqw; }
+.fenetre-fermer {
+  width: 6.4cqw; height: 6.4cqw; border: none; border-radius: 50%; cursor: pointer;
+  background: var(--erreur); color: #fff; font-size: 3cqw; font-weight: 800; line-height: 1;
+}
+.fenetre-fermer:hover { filter: brightness(1.15); }
+.fenetre-corps {
+  flex: 1; overflow-y: auto; padding: 3.5cqw; color: #eee;
+  font-family: 'Fredoka', system-ui, sans-serif; font-size: 3cqw;
+}
+.ph-app { text-align: center; opacity: .85; line-height: 1.5; }
+
+/* ==========================================================================
+   MULTI-DÉCOR (Setup / Garage / Classe) + navigation radiale + HUD + jeu.
+   ========================================================================== */
+.couche-scene { position: absolute; inset: 0; }
+.couche-scene[hidden] { display: none; }
+.scene-placeholder {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  max-width: 70%; text-align: center; color: #fff; font-family: 'Fredoka', system-ui, sans-serif;
+  font-weight: 700; font-size: 2vw; background: rgba(20,17,39,.55); padding: 1.2em 1.6em; border-radius: 14px;
+}
+
+/* ---------- Menu radial (haut-droite) : voyager entre les décors ---------- */
+.nav-radial { position: absolute; top: 16px; right: 16px; z-index: 45; opacity: 0; pointer-events: none; transition: opacity .4s ease; }
+.intro.reveil-on .nav-radial { opacity: 1; pointer-events: auto; }
+.nav-bouton {
+  width: 54px; height: 54px; border-radius: 50%; cursor: pointer; position: relative; z-index: 2;
+  border: 3px solid var(--bleu-nuit); font-size: 24px;
+  background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 55%, var(--or-fonce));
+  box-shadow: 0 4px 0 var(--or-ombre), 0 0 14px rgba(245,166,35,.5); transition: transform .3s ease;
+}
+.nav-radial.ouvert .nav-bouton { transform: rotate(45deg); }
+.nav-options { position: absolute; top: 27px; right: 27px; }
+.nav-scene {
+  position: absolute; width: 60px; height: 60px; margin: -30px -30px 0 0; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--bleu-nuit); background: rgba(20,17,39,.94); color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700; font-size: 10px;
+  opacity: 0; transform: translate(0, 0) scale(.3); pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease, box-shadow .2s ease;
+}
+.nav-scene .ns-emoji { font-size: 20px; line-height: 1; }
+.nav-radial.ouvert .nav-scene { opacity: 1; pointer-events: auto; }
+.nav-radial.ouvert .nav-scene[data-scene="setup"]  { transform: translate(-72px, 4px) scale(1); }
+.nav-radial.ouvert .nav-scene[data-scene="garage"] { transform: translate(-56px, 54px) scale(1); }
+.nav-radial.ouvert .nav-scene[data-scene="classe"] { transform: translate(-4px, 76px) scale(1); }
+.nav-scene:hover { border-color: var(--orange-dore); box-shadow: 0 0 12px rgba(224,57,155,.6); }
+.nav-scene.actif { border-color: var(--rose-neon); box-shadow: 0 0 12px var(--rose-neon); }
+.nav-scene.verrou { filter: grayscale(1) brightness(.55); cursor: not-allowed; }
+.nav-scene.verrou::after { content: "🔒"; position: absolute; top: 2px; right: 4px; font-size: 13px; }
+
+/* ---------- HUD (argent / jour / heure / boutique / admin) ---------- */
+.hud {
+  position: absolute; top: 14px; left: 14px; z-index: 45; display: flex; align-items: center; gap: 10px;
+  opacity: 0; pointer-events: none; transition: opacity .4s ease;
+  font-family: 'Fredoka', system-ui, sans-serif; color: #fff;
+}
+.intro.reveil-on .hud { opacity: 1; pointer-events: auto; }
+.hud-item {
+  display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 16px;
+  background: rgba(20,17,39,.82); border: 2px solid rgba(245,166,35,.5); border-radius: 999px; padding: 6px 12px;
+}
+.hud-item img { width: 22px; height: 22px; object-fit: contain; }
+.hud button {
+  cursor: pointer; border: 2px solid var(--bleu-nuit); border-radius: 999px; padding: 7px 12px;
+  font-family: 'Fredoka', system-ui, sans-serif; font-weight: 800; font-size: 14px; color: var(--texte-sombre);
+  background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 60%, var(--or-fonce));
+}
+.hud button:hover { filter: brightness(1.08); }
+.hud .hud-admin { background: linear-gradient(180deg, #ff7bd5, var(--rose-neon)); color: #fff; }
+
+/* ---------- Modo Biscotte : modération payée (dans la fenêtre) ---------- */
+.modo { display: flex; flex-direction: column; gap: 3cqw; }
+.modo-intro { opacity: .85; font-size: 2.6cqw; }
+.modo-msg {
+  background: #201b33; border: .4cqw solid #4a3d6e; border-radius: 2cqw; padding: 3cqw; min-height: 14cqw;
+  display: flex; align-items: center; gap: 2cqw; font-size: 3cqw;
+}
+.modo-msg .pseudo { color: var(--or-clair); font-weight: 800; }
+.modo-actions { display: flex; gap: 3cqw; }
+.modo-actions button {
+  flex: 1; cursor: pointer; border: none; border-radius: 2cqw; padding: 3cqw; font-weight: 800; font-size: 3.2cqw; color: #fff;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+.modo-garder { background: var(--succes); }
+.modo-suppr  { background: var(--erreur); }
+.modo-feedback { text-align: center; font-weight: 800; font-size: 3cqw; min-height: 4cqw; }
+.modo-feedback.ok { color: var(--succes); }
+.modo-feedback.ko { color: var(--erreur); }
+
+/* ---------- Panneau générique (Garage / Boutique) ---------- */
+.modal { position: absolute; inset: 0; z-index: 55; display: none; align-items: center; justify-content: center; background: rgba(8,6,20,.6); }
+.modal.visible { display: flex; }
+.modal-boite {
+  width: min(560px, 88%); max-height: 82%; overflow-y: auto; background: #14121f;
+  border: 3px solid var(--orange-dore); border-radius: 18px; box-shadow: 0 12px 40px rgba(0,0,0,.6);
+  color: #eee; font-family: 'Fredoka', system-ui, sans-serif;
+}
+.modal-tete { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;
+  background: linear-gradient(180deg, var(--violet-profond), #3a1a5c); border-bottom: 2px solid rgba(245,166,35,.5); }
+.modal-tete h2 { margin: 0; font-size: 20px; color: #fff; }
+.modal-fermer { width: 34px; height: 34px; border: none; border-radius: 50%; background: var(--erreur); color: #fff; font-weight: 800; cursor: pointer; font-size: 16px; }
+.modal-corps { padding: 16px 18px; }
+.modal-corps .sous { opacity: .8; margin: 0 0 12px; }
+.achat-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 10px;
+  background: #201b33; border: 2px solid #3d3260; border-radius: 12px;
+}
+.achat-item .emoji { font-size: 26px; }
+.achat-item .infos { flex: 1; }
+.achat-item .nom { font-weight: 800; }
+.achat-item .detail { opacity: .75; font-size: 13px; }
+.achat-item button {
+  cursor: pointer; border: none; border-radius: 10px; padding: 9px 14px; font-weight: 800; color: var(--texte-sombre);
+  background: linear-gradient(180deg, var(--or-clair), var(--orange-dore)); font-family: inherit;
+}
+.achat-item button:disabled { filter: grayscale(1) brightness(.7); cursor: default; }
+.achat-item.possede { border-color: var(--succes); }
+.achat-item.possede button { background: var(--succes); color: #fff; }
+
+/* Jauge de réparation de la Miata (dans le garage) */
+.miata-jauge { height: 16px; border-radius: 999px; background: rgba(255,255,255,.15); border: 2px solid var(--or-fonce); overflow: hidden; margin-top: 6px; }
+.miata-jauge > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--rose-neon), var(--orange-dore)); transition: width .4s ease; }
+
+/* Panneau du garage (liste des pièces à acheter) */
+.garage-panneau {
+  position: absolute; top: 50%; right: 3%; transform: translateY(-50%);
+  width: min(340px, 42%); max-height: 88%; overflow-y: auto;
+  background: rgba(20,17,39,.92); border: 3px solid var(--orange-dore); border-radius: 16px;
+  padding: 14px 16px; color: #eee; font-family: 'Fredoka', system-ui, sans-serif;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+.garage-panneau h2 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+
+/* ---------- Nuit (assombrit la scène) + sommeil forcé ---------- */
+.nuit { position: absolute; inset: 0; z-index: 40; pointer-events: none; background: #05040f; opacity: 0; transition: opacity 1.5s ease; }
+/* Rappel de nuit NON bloquant : petit bandeau en haut, KZ peut continuer à jouer. */
+.rappel-nuit {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 68;
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 999px;
+  background: rgba(20,17,39,.92); border: 2px solid var(--violet-profond);
+  box-shadow: 0 8px 24px rgba(0,0,0,.5); font-family: 'Fredoka', system-ui, sans-serif;
+  animation: rappelPulse 2.4s ease-in-out infinite;
+}
+.rappel-nuit[hidden] { display: none; }
+.rappel-nuit .rn-emoji { font-size: 22px; }
+.rappel-nuit .rn-texte { color: #eee; font-weight: 700; font-size: 15px; }
+.rappel-nuit button {
+  cursor: pointer; border: 2px solid var(--bleu-nuit); border-radius: 10px; padding: 8px 16px; font-size: 15px; font-weight: 800; color: var(--texte-sombre);
+  background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 55%, var(--or-fonce)); box-shadow: 0 4px 0 var(--or-ombre); font-family: 'Fredoka', system-ui, sans-serif;
+}
+.rappel-nuit button:hover { filter: brightness(1.08); }
+@keyframes rappelPulse { 0%,100% { box-shadow: 0 8px 24px rgba(0,0,0,.5); } 50% { box-shadow: 0 8px 30px rgba(91,42,134,.8); } }
+.gain-flottant { position: absolute; z-index: 60; color: var(--succes); font-family: 'Fredoka', system-ui, sans-serif; font-weight: 800; font-size: 22px; pointer-events: none; text-shadow: 0 2px 6px #000; animation: montee 1s ease forwards; }
+@keyframes montee { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-60px); opacity: 0; } }
+
+/* ==========================================================================
+   CLASSE (Acte 2) : zones élèves, pièce d'avion, appel, bascule "67".
+   ========================================================================== */
+.perso-zone {
+  position: absolute; border: none; background: transparent; cursor: pointer; border-radius: 12px;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+.perso-zone::after {
+  content: attr(data-nom); position: absolute; left: 50%; top: -6px; transform: translate(-50%, -100%);
+  background: rgba(20,17,39,.9); color: #fff; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700;
+  font-size: 14px; padding: 3px 10px; border-radius: 999px; opacity: 0; transition: opacity .15s ease; white-space: nowrap;
+}
+.perso-zone:hover { background: rgba(224,57,155,.14); box-shadow: inset 0 0 0 3px rgba(245,166,35,.6); }
+.perso-zone:hover::after { opacity: 1; }
+
+/* Pièce à ramasser dans la salle = une étoile (asset), propre et lisible */
+.avion-part {
+  position: absolute; z-index: 6; width: 64px; height: 64px; border: none; padding: 0; cursor: pointer;
+  background-color: transparent; background-image: url("/static/img/ui/star.png");
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  filter: drop-shadow(0 0 14px rgba(252,213,99,.95)); animation: pulseAvion 1s ease-in-out infinite;
+}
+.avion-part[hidden] { display: none; }
+
+/* Fantôme (après 3 h du matin) : zone cliquable discrète avec une lueur inquiétante */
+.fantome-zone {
+  position: absolute; z-index: 8; border: none; padding: 0; cursor: pointer; border-radius: 14px;
+  background: radial-gradient(ellipse at center, rgba(220,235,255,.18), rgba(220,235,255,0) 70%);
+  box-shadow: 0 0 26px rgba(200,225,255,.35); animation: fantomeFlotte 2.6s ease-in-out infinite;
+}
+.fantome-zone[hidden] { display: none; }
+.fantome-zone:hover { background: radial-gradient(ellipse at center, rgba(220,235,255,.34), rgba(220,235,255,0) 72%); }
+@keyframes fantomeFlotte { 0%,100% { opacity: .55; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-6px); } }
+
+/* JUMPSCARE : la vidéo du fantôme prend tout l'écran, par-dessus tout le reste */
+.jumpscare { position: fixed; inset: 0; z-index: 999; background: #000; opacity: 0; transition: opacity .12s ease; }
+.jumpscare[hidden] { display: none; }
+.jumpscare.visible { opacity: 1; }
+.jumpscare-video { width: 100%; height: 100%; object-fit: cover; }
+
+/* Re-réveil (respawn après le jumpscare) : rejoue le flou -> net sur la scène */
+.scene.reveil-again { animation: reveil 2.2s ease-out; animation-play-state: running; }
+
+/* Admin (Mok) : boutons pour voyager dans le temps */
+.hud-temps { gap: 6px; }
+.hud-temps .temps-btn {
+  cursor: pointer; border: 2px solid var(--bleu-nuit); border-radius: 8px; padding: 4px 8px; margin-left: 4px;
+  font-size: 13px; font-weight: 800; color: var(--texte-sombre); font-family: 'Fredoka', system-ui, sans-serif;
+  background: linear-gradient(180deg, #b9a6ff, var(--violet-profond)); color: #fff;
+}
+.hud-temps .temps-btn:hover { filter: brightness(1.12); }
+
+/* Actions de la classe (punir / signaler l'absent) */
+.classe-actions { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); z-index: 7; display: flex; gap: 12px; }
+.classe-actions button {
+  cursor: pointer; border: 3px solid var(--bleu-nuit); border-radius: 12px; padding: 10px 18px; font-weight: 800; font-size: 16px;
+  color: var(--texte-sombre); background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 60%, var(--or-fonce));
+  box-shadow: 0 4px 0 var(--or-ombre); font-family: 'Fredoka', system-ui, sans-serif;
+}
+.classe-actions button:hover { filter: brightness(1.08); }
+.classe-actions #btnSignaler { background: linear-gradient(180deg, #ff8ad0, var(--rose-neon)); color: #fff; }
+@keyframes pulseAvion { 0%,100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+
+/* Vignette d'une pièce (menu de suivi) */
+.piece-thumb {
+  width: 58px; height: 44px; flex-shrink: 0; background-color: transparent;
+  background-image: url("/static/img/ui/pieceavion.png"); background-size: 500% 200%; background-repeat: no-repeat;
+}
+.piece-thumb.manquante { filter: grayscale(1) brightness(.45); opacity: .55; }
+.avion-fini { width: 100%; border-radius: 12px; margin-top: 10px; display: block; }
+
+/* Grille d'appel (présent/absent de Dylan) */
+.appel-grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 10px 0 14px; }
+.appel-case { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; border-radius: 8px; background: #201b33; border: 2px solid #3d3260; }
+.appel-choix { display: flex; flex-wrap: wrap; gap: 8px; }
+.appel-choix button { cursor: pointer; border: 2px solid var(--bleu-nuit); border-radius: 10px; padding: 8px 16px; font-weight: 800; font-size: 16px; color: var(--texte-sombre); background: linear-gradient(180deg, var(--or-clair), var(--orange-dore)); font-family: 'Fredoka', system-ui, sans-serif; }
+.appel-choix button:hover { filter: brightness(1.08); }
+.appel-res { margin-top: 12px; font-weight: 800; min-height: 22px; }
+.appel-res.ok { color: var(--succes); }
+.appel-res.ko { color: var(--erreur); }
+
+/* Bascule "67" de Lucas : l'écran se balance de gauche à droite */
+.zoom.sway67 { animation: sway67 1.5s ease-in-out; transform-origin: 50% 65%; }
+@keyframes sway67 {
+  0%, 100% { transform: rotate(0deg); }
+  18% { transform: rotate(-5deg); }
+  42% { transform: rotate(5deg); }
+  66% { transform: rotate(-3.5deg); }
+  86% { transform: rotate(2deg); }
+}
+
+/* ---------- Événement aléatoire (bandeau) ---------- */
+.evenement {
+  position: absolute; top: 74px; left: 50%; transform: translateX(-50%) translateY(-16px); z-index: 65;
+  display: flex; align-items: center; gap: 12px; max-width: min(460px, 84%);
+  background: linear-gradient(180deg, #241c44, #14121f); border: 3px solid var(--orange-dore); border-radius: 14px;
+  padding: 12px 16px; color: #fff; font-family: 'Fredoka', system-ui, sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  opacity: 0; transition: opacity .35s ease, transform .35s ease; pointer-events: none;
+}
+.evenement.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.evenement[hidden] { display: none; }
+.ev-emoji { font-size: 30px; }
+.ev-titre { font-weight: 800; font-size: 16px; color: var(--or-clair); }
+.ev-texte { font-size: 14px; opacity: .95; }
+
+/* ---------- Niveau / XP dans le HUD ---------- */
+.hud-xp { display: flex; align-items: center; gap: 6px; }
+.xp-barre { width: 90px; height: 10px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.2); border: 2px solid var(--or-fonce); }
+.xp-barre > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--rose-neon), var(--or-clair)); transition: width .3s ease; }
 
 /* ---------- ÉCRAN DROIT : app Biscotte (bandeau bloqué + notif) ---------- */
 .bloque-strip {
@@ -140,7 +463,7 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 
 /* ---------- Légende (narration) en bas de la scène ---------- */
 .legende {
-  position: absolute; left: 0; bottom: 4%; width: 100%; z-index: 20;
+  position: absolute; left: 0; bottom: 15%; width: 100%; z-index: 20;
   text-align: center; padding: 0 6%; color: #fff;
   font-size: clamp(14px, 2.3vh, 26px); font-weight: 700; text-shadow: 0 2px 6px #000;
   opacity: 0; transition: opacity .6s ease;
@@ -164,6 +487,101 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
 .passer { position: absolute; bottom: 14px; left: 16px; z-index: 40; color: rgba(255,255,255,.7); text-decoration: none; font-size: 14px; }
 .passer:hover { color: #fff; }
 
+/* ---------- Vidéo d'accroche plein écran (jouée avant le réveil) ---------- */
+.video-overlay {
+  position: absolute; inset: 0; z-index: 100;      /* au-dessus de TOUT le reste */
+  background: #000; display: flex; align-items: center; justify-content: center;
+  transition: opacity .6s ease;
+}
+.video-overlay.termine { opacity: 0; pointer-events: none; }   /* fondu quand la vidéo se termine */
+/* cover = la vidéo remplit TOUTE la page (rogne un peu les bords au besoin) */
+.intro-video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+
+/* Bouton de secours ▶ : caché par défaut, affiché si l'autoplay est bloqué */
+.btn-play-video {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  display: none; cursor: pointer; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 800;
+  font-size: 20px; color: var(--texte-sombre);
+  padding: 16px 28px; border-radius: 14px; border: 3px solid var(--bleu-nuit);
+  background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 55%, var(--or-fonce));
+  box-shadow: 0 6px 0 var(--or-ombre);
+}
+.btn-play-video.visible { display: block; }
+.btn-play-video:hover { filter: brightness(1.1); }
+
+/* Lien pour passer uniquement la vidéo (en haut à droite, loin de la bulle astuce) */
+.skip-video {
+  position: absolute; top: 16px; right: 20px; z-index: 120;
+  color: rgba(255,255,255,.75); text-decoration: none; font-size: 14px;
+  background: rgba(20,17,39,.6); padding: 6px 12px; border-radius: 999px;
+}
+.skip-video:hover { color: #fff; }
+
+/* ==========================================================================
+   ÉCRAN DE CHARGEMENT (façon GTA) : joué APRÈS la vidéo, AVANT le spawn.
+   Recréé en JS vanilla (pas de Vue/CDN) à partir des assets du loader.
+   ========================================================================== */
+.loading {
+  position: absolute; inset: 0; z-index: 90; background: #000;
+  overflow: hidden; display: none; opacity: 1; transition: opacity .8s ease;
+}
+.loading.visible { display: block; }
+.loading.termine { opacity: 0; pointer-events: none; }
+
+/* Fond qui défile doucement (effet "Ken Burns") */
+.loading-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 1s ease;
+}
+.loading-bg.on { opacity: .9; animation: kenburns 9s ease forwards; }
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.12); } }
+
+/* Personnage (Dylan & co) qui apparaît depuis le côté */
+.loading-perso {
+  position: absolute; right: 8%; bottom: 0; height: 82%; max-width: 46%;
+  object-fit: contain; opacity: 0;
+  filter: drop-shadow(0 0 30px rgba(0,0,0,.6));
+}
+.loading-perso.on { animation: persoIn 1s ease forwards; }
+@keyframes persoIn { from { transform: translateX(8%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Logo KZ TYCOON en bas à gauche */
+.loading-logo { position: absolute; left: 24px; bottom: 22px; width: 150px; z-index: 3; image-rendering: pixelated; }
+
+/* Texte + barre de progression (bas au centre) */
+.loading-txt {
+  position: absolute; left: 50%; bottom: calc(9% + 28px); transform: translateX(-50%); z-index: 3;
+  color: #fff; font-family: 'Press Start 2P', monospace; font-size: 12px; letter-spacing: 1px;
+  text-shadow: 0 2px 4px #000;
+}
+.loading-barre {
+  position: absolute; left: 50%; bottom: 9%; transform: translateX(-50%); z-index: 3;
+  width: min(520px, 70%); height: 16px; overflow: hidden; border-radius: 999px;
+  background: rgba(255,255,255,.15); border: 2px solid var(--or-fonce);
+}
+.loading-barre-remplie {
+  height: 100%; width: 0%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--or-clair), var(--orange-dore));
+}
+
+/* ---------- Bulle "ASTUCE" (image fournie) : texte troll dans la zone bleue ---------- */
+.astuce {
+  position: fixed; right: 20px; bottom: 20px; z-index: 110;
+  width: min(400px, 46vw); aspect-ratio: 1536 / 1024;   /* ratio exact de bulle.png */
+  background: url("/static/img/ui/bulle.png") center / 100% 100% no-repeat;
+  pointer-events: none;                                  /* décoratif : ne bloque aucun clic */
+  opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease;
+}
+.astuce.visible { opacity: 1; transform: translateY(0); }
+.astuce-texte {
+  position: absolute; left: 14%; right: 15%; top: 30%; bottom: 23%;   /* pile la zone bleue */
+  margin: 0; display: flex; align-items: center; justify-content: center; text-align: center;
+  color: #fff; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700;
+  font-size: clamp(9px, 0.95vw, 13px); line-height: 1.2;
+  overflow: hidden; word-break: break-word; hyphens: auto;   /* jamais de débordement */
+  text-shadow: 0 1px 3px rgba(0,0,0,.55);
+}
+
 /* Indice de zoom, en haut au centre, s'efface tout seul */
 .zoom-hint {
   position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 40;
@@ -172,3 +590,80 @@ body { background: #000; overflow: hidden; font-family: 'Fredoka', system-ui, sa
   transition: opacity .6s ease;
 }
 .zoom-hint.efface { opacity: 0; }
+
+/* ==========================================================================
+   MAJ TYCOON : améliorations de décor (cadenas), mécano, appli Mails.
+   ========================================================================== */
+
+/* ---------- Mécano (Schanice) : sprite debout dans le garage ---------- */
+.mecano {
+  position: absolute; left: 3%; bottom: 0; z-index: 6; height: 82%; width: 22%;
+  border: none; padding: 0; cursor: pointer; background: transparent no-repeat center bottom;
+  background-size: contain; filter: drop-shadow(0 6px 18px rgba(0,0,0,.6));
+  animation: mecaFloat 3.2s ease-in-out infinite;
+}
+.mecano[hidden] { display: none; }
+.mecano::after {
+  content: "🔧 Schanice — parle-lui"; position: absolute; left: 50%; top: 6%; transform: translate(-50%, -100%);
+  background: rgba(20,17,39,.92); color: #fff; font-family: 'Fredoka', system-ui, sans-serif; font-weight: 700;
+  font-size: 14px; padding: 4px 12px; border-radius: 999px; white-space: nowrap; opacity: 0; transition: opacity .15s ease;
+}
+.mecano:hover { filter: drop-shadow(0 0 22px rgba(224,57,155,.6)); }
+.mecano:hover::after { opacity: 1; }
+@keyframes mecaFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.2%); } }
+
+/* Portrait + réplique de Schanice dans sa modale */
+.meca-intro { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.meca-intro img { width: 92px; height: 128px; object-fit: cover; object-position: top center; border-radius: 12px; border: 2px solid var(--rose-neon); background: #14121f; }
+.meca-intro b { color: var(--rose-neon); font-size: 18px; }
+.verrou-meca { opacity: .55; }
+.verrou-meca .emoji, .verrou-meca .infos { filter: grayscale(.6); }
+
+/* ---------- Modale Améliorations : cartes de niveaux avec cadenas ---------- */
+.up-titre { margin: 6px 0 8px; color: #fff; font-size: 18px; }
+.up-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.up-carte {
+  border-radius: 14px; overflow: hidden; background: #201b33; border: 2px solid #3d3260;
+  display: flex; flex-direction: column;
+}
+.up-carte.actuel  { border-color: var(--or-clair); box-shadow: 0 0 0 2px var(--or-clair) inset; }
+.up-carte.suivant { border-color: var(--rose-neon); }
+.up-thumb {
+  position: relative; height: 100px; background: #14121f center / cover no-repeat;
+}
+.up-carte.verrou .up-thumb { filter: blur(6px) brightness(.5); }
+.up-cadenas {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 34px; text-shadow: 0 2px 8px #000;
+}
+.up-info { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.up-nom { font-weight: 800; color: #fff; font-size: 14px; }
+.up-bonus { font-size: 12px; color: var(--or-clair); }
+.up-tag { font-weight: 800; font-size: 13px; }
+.up-tag.ok   { color: var(--succes); }
+.up-tag.now  { color: var(--or-clair); }
+.up-tag.lock { color: #9a90b8; }
+.up-buy {
+  cursor: pointer; border: 2px solid var(--bleu-nuit); border-radius: 10px; padding: 8px 12px; font-weight: 800; font-size: 14px;
+  color: var(--texte-sombre); background: linear-gradient(180deg, var(--or-clair), var(--orange-dore) 60%, var(--or-fonce));
+  box-shadow: 0 4px 0 var(--or-ombre); font-family: 'Fredoka', system-ui, sans-serif;
+}
+.up-buy:hover { filter: brightness(1.08); }
+
+/* ---------- Carte "Merci chef" : glisse depuis un bord ---------- */
+.mercichef {
+  position: fixed; bottom: 0; z-index: 120; height: 60vh; max-width: 44vw;
+  object-fit: contain; pointer-events: none; opacity: 0;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,.6));
+  transition: transform .55s cubic-bezier(.2,.9,.3,1.25), opacity .4s ease;
+}
+.mercichef[hidden] { display: none; }
+.mercichef.cote-gauche { left: 0;  transform: translateX(-115%); }
+.mercichef.cote-droite { right: 0; transform: translateX(115%); }
+.mercichef.entre { transform: translateX(0); opacity: 1; }
+
+/* ---------- Appli Mails : carte de mail ---------- */
+.mail-carte { background: #14121f; border: 2px solid #3d3260; border-radius: 12px; padding: 12px 14px; margin: 10px 0; min-height: 96px; }
+.mail-tete { font-size: 13px; color: #b9a6ff; margin-bottom: 4px; }
+.mail-sujet { font-weight: 800; color: #fff; font-size: 16px; margin-bottom: 6px; }
+.mail-corps { font-size: 14px; color: #e7e2f3; line-height: 1.35; }

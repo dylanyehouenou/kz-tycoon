@@ -10,7 +10,34 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/intro.css') }}">
 </head>
 <body>
-  <div class="intro" id="intro">
+  <div class="intro" id="intro" data-reprendre="{{ 1 if reprendre else 0 }}">
+
+    {# ---------- Vidéo d'accroche : jouée EN PREMIER, avant le réveil ---------- #}
+    <div class="video-overlay" id="videoOverlay">
+      <video id="introVideo" class="intro-video" playsinline preload="auto">
+        <source src="{{ url_for('static', filename='video/intro.mp4') }}" type="video/mp4">
+      </video>
+      {# Bouton de secours : s'affiche si le navigateur bloque le démarrage auto (avec son) #}
+      <button class="btn-play-video" id="btnPlayVideo" type="button">▶ Lancer l'intro</button>
+      {# Passer UNIQUEMENT la vidéo (pas toute l'intro) #}
+      <a class="skip-video" id="skipVideo" href="#">Passer la vidéo ⏭</a>
+    </div>
+
+    {# ---------- Écran de CHARGEMENT (façon GTA) : après la vidéo, avant le spawn ---------- #}
+    <div class="loading" id="loading">
+      <img class="loading-bg"    id="loadingBg"    src="" alt="">
+      <img class="loading-perso" id="loadingPerso" src="" alt="">
+      <img class="loading-logo"  src="{{ url_for('static', filename='img/ui/logo.png') }}" alt="KZ TYCOON">
+      <div class="loading-txt" id="loadingTxt">CHARGEMENT… 0%</div>
+      <div class="loading-barre"><div class="loading-barre-remplie" id="loadingBarre"></div></div>
+      {# musique du chargement (démarre à la fin de la vidéo) #}
+      <audio id="loadingSound" src="{{ url_for('static', filename='sounds/loading.ogg') }}" loop></audio>
+    </div>
+
+    {# ---------- Bulle "ASTUCE" (troll) : visible pendant la vidéo ET le chargement ---------- #}
+    <div class="astuce" id="astuce" aria-hidden="true">
+      <p class="astuce-texte" id="astuceTexte"></p>
+    </div>
 
     {# Couche de ZOOM/déplacement (transformée par la molette et le glisser) #}
     <div class="zoom" id="zoom">
@@ -18,41 +45,186 @@
       {# La scène = l'image du setup, au ratio exact (positions en % fiables) #}
       <div class="scene" id="scene">
 
-        {# ---------- ÉCRAN GAUCHE : navigateur "Viens Chercher Argent" ---------- #}
-        <div class="ecran ecran-gauche" id="ecranG">
-          <button class="icone-nav" id="btnMetier" type="button">
-            <span class="rond">🌐</span>
-            <span class="txt">Viens Chercher Argent</span>
-          </button>
+        {# ============ DÉCOR "SETUP" : le bureau de l'ordi ============ #}
+        <div class="couche-scene" id="scene-setup">
+        {# ---------- ÉCRAN UNIQUE = le "bureau" de l'ordi de KZ ---------- #}
+        <div class="ecran" id="ecran">
 
-          <div class="navigateur" id="navigateur">
-            <div class="nav-barre">🔒 https://vienschercherargent.kz</div>
-            <div class="nav-page">
-              <img class="site-logo-img"
-                   src="{{ url_for('static', filename='img/ui/logovienchercherargent.png') }}"
-                   alt="Viens Chercher Argent">
-              <p class="site-slogan">Le job de tes rêves (ou pas) t'attend, KZ.</p>
-              <div class="annonces" id="annonces"></div>
+          {# Barre du haut : argent (money.png) + horloge #}
+          <div class="pc-barre">
+            <span class="pc-argent">
+              <img src="{{ url_for('static', filename='img/ui/money.png') }}" alt="argent">
+              <span class="argent-val">0 €</span>
+            </span>
+            <span class="pc-heure">KZ-OS · 04:15</span>
+          </div>
+
+          {# Icônes cliquables du bureau #}
+          <div class="bureau" id="bureau">
+            <button class="app-icone" type="button" data-app="site">
+              <img src="{{ url_for('static', filename='img/ui/logovienchercherargent.png') }}" alt="">
+              <span>Viens Chercher Argent</span>
+            </button>
+            <button class="app-icone" type="button" data-app="biscotte">
+              <img src="{{ url_for('static', filename='img/ui/biscotte.png') }}" alt="">
+              <span>Biscotte</span>
+            </button>
+            <button class="app-icone" type="button" data-app="mails">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='2' y='4.5' width='20' height='15' rx='2.5' fill='%23F5A623'/%3E%3Cpath d='M3 6l9 6.5L21 6' fill='none' stroke='%235B2A86' stroke-width='2.2'/%3E%3C/svg%3E" alt="">
+              <span>Mails</span>
+            </button>
+          </div>
+
+          {# Fenêtre générique (beaux contours) : ouverte au clic sur une icône #}
+          <div class="fenetre" id="fenetre" hidden>
+            <div class="fenetre-barre" id="fenetreBarre">
+              <img class="fenetre-icone" id="fenetreIcone" src="" alt="">
+              <span class="fenetre-titre" id="fenetreTitre">Fenêtre</span>
+              <button class="fenetre-fermer" id="fenetreFermer" type="button" aria-label="Fermer">✕</button>
             </div>
+            <div class="fenetre-corps" id="fenetreCorps"></div>
+          </div>
+
+        </div>{# /ecran #}
+        </div>{# /scene-setup #}
+
+        {# ============ DÉCOR "GARAGE" : réparer la Miata (acheter les pièces) ============ #}
+        <div class="couche-scene" id="scene-garage" hidden>
+          <div class="garage-panneau" id="garagePanneau"></div>
+          {# Schanice, la mécano : apparaît au garage niveau 2, vend des améliorations bonus #}
+          <button class="mecano" id="mecano" hidden aria-label="Parler à Schanice la mécano"
+                  style="background-image:url('{{ url_for('static', filename='img/ui/mecanogirl.png') }}')"></button>
+        </div>
+
+        {# ============ DÉCOR "CLASSE" Ynov (Acte 2) ============ #}
+        <div class="couche-scene" id="scene-classe" hidden>
+          {# Zones cliquables sur les élèves (transparentes, avec libellé au survol) #}
+          <button class="perso-zone" data-perso="lucas"   style="left:18%; top:46%; width:13%; height:28%" data-nom="Lucas"></button>
+          <button class="perso-zone" data-perso="dylan"   id="zoneDylan" style="left:50%; top:45%; width:14%; height:30%" data-nom="Dylan"></button>
+          <button class="perso-zone" data-perso="leonard" style="left:73%; top:46%; width:17%; height:42%" data-nom="Léonard"></button>
+          {# Étoile à collecter (révélée par Léonard) #}
+          <button class="avion-part" id="avionPart" hidden aria-label="Ramasser la pièce d'avion"></button>
+          {# Fantôme : apparaît après 3 h du matin (heure >= 1620). Zone cliquable = jumpscare #}
+          <button class="fantome-zone" id="fantomeZone" hidden aria-label="Quelque chose bouge près de la porte…"
+                  style="left:45%; top:42%; width:9%; height:24%"></button>
+          {# Actions de la classe : punir (revenu) + signaler l'absence de Dylan #}
+          <div class="classe-actions">
+            <button id="btnPunir" type="button">🔨 Punir un élève</button>
+            <button id="btnSignaler" type="button">🚨 Dylan a séché ?</button>
           </div>
         </div>
 
-        {# ---------- ÉCRAN DROIT : app "Biscotte" (bloqué + notif d'Océane) ---------- #}
-        <div class="ecran ecran-droit" id="ecranD">
-          <div class="bloque-strip" id="bloqueTag">⛔ UTILISATEUR BLOQUÉ ⛔</div>
-          <div class="notif" id="notif">
-            <div class="notif-avatar">
-              <img src="{{ url_for('static', filename='img/ui/biscotte.png') }}" alt="Biscotte">
-            </div>
-            <div class="notif-corps">
-              <div class="notif-titre">Océane <span class="notif-app">• Biscotte</span></div>
-              <div class="notif-msg">Je te quitte, tu passes trop de temps sur Biscotte 💔</div>
-            </div>
+        {# Voile de nuit (assombrit le décor selon l'heure) #}
+        <div class="nuit" id="nuit"></div>
+
+        {# ---------- HUD intégré au décor : argent / jour / heure / boutique / admin ---------- #}
+        <div class="hud" id="hud">
+          <span class="hud-item"><img src="{{ url_for('static', filename='img/ui/money.png') }}" alt="€"><span class="argent-val">0 €</span></span>
+          <span class="hud-item">🗓️ Jour <span id="hudJour">1</span></span>
+          <span class="hud-item">🕐 <span id="hudHeure">08:00</span></span>
+          <span class="hud-item" id="hudCred" title="Crédibilité de prof">⭐ <span id="credVal">100</span></span>
+          <span class="hud-item hud-xp" title="Niveau (XP)">Nv <span id="niveauVal">1</span><span class="xp-barre"><i id="xpBarre"></i></span></span>
+          <button id="btnAvion" type="button">✈️ <span id="avionVal">0</span>/10</button>
+          <button id="btnUpgrade" type="button">🏗️ Améliorer</button>
+          <button id="btnBoutique" type="button">🛒 Boutique</button>
+          {% if est_admin %}<button class="hud-admin" id="btnAdmin" type="button">👑 Max €</button>
+          <button class="hud-admin" id="btnNiveauMax" type="button">⭐ Nv 999</button>
+          {# Admin (Mok) : voyager dans le temps pour tester (ex. le fantôme à 3 h) #}
+          <span class="hud-item hud-temps" title="Admin : régler l'heure">🕹️
+            <button class="temps-btn" id="btnTemps8"  type="button" data-heure="480">☀️ 8h</button>
+            <button class="temps-btn" id="btnTemps22" type="button" data-heure="1320">🌙 22h</button>
+            <button class="temps-btn" id="btnTemps3"  type="button" data-heure="1620">👻 3h</button>
+          </span>{% endif %}
+        </div>
+
+        {# ---------- Menu radial intégré (coin de l'écran de jeu) ---------- #}
+        <div class="nav-radial" id="navRadial">
+          <button class="nav-bouton" id="navBouton" type="button" aria-label="Voyager">🧭</button>
+          <div class="nav-options">
+            <button class="nav-scene" data-scene="setup"  type="button"><span class="ns-emoji">🖥️</span><span class="ns-nom">Setup</span></button>
+            <button class="nav-scene" data-scene="garage" type="button"><span class="ns-emoji">🔧</span><span class="ns-nom">Garage</span></button>
+            <button class="nav-scene" data-scene="classe" type="button"><span class="ns-emoji">🎓</span><span class="ns-nom">Classe</span></button>
           </div>
         </div>
 
       </div>{# /scene #}
     </div>{# /zoom #}
+
+    {# ---------- Rappel de nuit NON bloquant : KZ peut continuer, mais peut dormir ---------- #}
+    <div class="rappel-nuit" id="rappelNuit" hidden>
+      <span class="rn-emoji">🌙</span>
+      <span class="rn-texte" id="rappelNuitTxt">Il est tard… KZ tient à peine debout.</span>
+      <button id="btnDormir" type="button">😴 Dormir</button>
+    </div>
+
+    {# ---------- JUMPSCARE fantôme : vidéo plein écran, puis -150 € et réveil au bureau ---------- #}
+    <div class="jumpscare" id="jumpscare" hidden>
+      <video id="jumpscareVideo" class="jumpscare-video" playsinline preload="auto">
+        <source src="{{ url_for('static', filename='video/fantomvideo.mp4') }}" type="video/mp4">
+      </video>
+    </div>
+
+    {# ---------- Boutique d'améliorations ---------- #}
+    <div class="modal" id="modalBoutique">
+      <div class="modal-boite">
+        <div class="modal-tete"><h2>🛒 Boutique</h2><button class="modal-fermer" id="fermerBoutique" type="button">✕</button></div>
+        <div class="modal-corps">
+          <p class="sous">Améliore ton matériel : chaque achat augmente ce que rapporte une modération.</p>
+          <div id="boutiqueListe"></div>
+        </div>
+      </div>
+    </div>
+
+    {# ---------- Améliorations de décor (setup / garage) avec cadenas ---------- #}
+    <div class="modal" id="modalUpgrade">
+      <div class="modal-boite">
+        <div class="modal-tete"><h2>🏗️ Améliorations</h2><button class="modal-fermer" id="fermerUpgrade" type="button">✕</button></div>
+        <div class="modal-corps">
+          <p class="sous">Améliore ton <b>setup</b> (plus de gains au PC) et ton <b>garage</b> (plus de revenu passif). Les niveaux verrouillés se débloquent dans l'ordre.</p>
+          <div id="upgradeCorps"></div>
+        </div>
+      </div>
+    </div>
+
+    {# ---------- Mécano (Schanice) : améliorations bonus au garage ---------- #}
+    <div class="modal" id="modalMecano">
+      <div class="modal-boite">
+        <div class="modal-tete"><h2>🔧 Schanice — Atelier</h2><button class="modal-fermer" id="fermerMecano" type="button">✕</button></div>
+        <div class="modal-corps" id="mecanoCorps"></div>
+      </div>
+    </div>
+
+    {# ---------- Appel : compter les absences de Dylan ---------- #}
+    <div class="modal" id="modalAppel">
+      <div class="modal-boite">
+        <div class="modal-tete"><h2>📋 Appel — Dylan</h2><button class="modal-fermer" id="fermerAppel" type="button">✕</button></div>
+        <div class="modal-corps" id="appelCorps"></div>
+      </div>
+    </div>
+
+    {# ---------- Suivi des pièces d'avion ---------- #}
+    <div class="modal" id="modalAvion">
+      <div class="modal-boite">
+        <div class="modal-tete"><h2>✈️ Pièces d'avion</h2><button class="modal-fermer" id="fermerAvion" type="button">✕</button></div>
+        <div class="modal-corps" id="avionCorps"></div>
+      </div>
+    </div>
+
+    {# ---------- Événement aléatoire (bandeau qui apparaît puis disparaît) ---------- #}
+    <div class="evenement" id="evenement" hidden>
+      <span class="ev-emoji" id="evEmoji">🎲</span>
+      <div class="ev-corps"><div class="ev-titre" id="evTitre"></div><div class="ev-texte" id="evTexte"></div></div>
+    </div>
+
+    {# Ambiance sonore de nuit (démarre à minuit, coupée au réveil) #}
+    <audio id="nightSound" src="{{ url_for('static', filename='sounds/nightambiant.mp3') }}" loop></audio>
+
+    {# Musique de fond DU JEU : seulement en journée (pas la nuit, ni pendant l'intro/loading) #}
+    <audio id="gameMusic" src="{{ url_for('static', filename='sounds/musiquejeu.mp3') }}" loop></audio>
+
+    {# Carte "Merci chef" : glisse depuis un bord au hasard toutes les ~3-4 min (son pop) #}
+    <img class="mercichef" id="mercichef" hidden alt="Merci chef !"
+         src="{{ url_for('static', filename='img/ui/mercichef.png') }}">
 
     {# Paupières (yeux qui s'ouvrent), au-dessus de la scène #}
     <div class="paupiere haut"></div>
@@ -60,9 +232,6 @@
 
     {# Narration #}
     <div class="legende" id="legende"></div>
-
-    {# Indice de contrôle du zoom #}
-    <div class="zoom-hint" id="zoomHint">🖱️ Molette : zoomer · Glisser : se déplacer · Double-clic : réinitialiser</div>
 
     {# Popup de résultat de candidature #}
     <div class="popup" id="popup">

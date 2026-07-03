@@ -6,7 +6,15 @@
 <div class="contenu">
   <div class="carte">
     <h1>🏅 Succès & badges</h1>
-    <p>La liste des succès à débloquer arrivera avec le gameplay.</p>
+    {% if badges %}
+      <ul style="list-style:none; padding:0; margin:12px 0; text-align:left; display:inline-block">
+        {% for b in badges %}
+          <li style="margin:6px 0; font-weight:700">🏆 {{ b }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Aucun succès débloqué pour l'instant. Gagne de l'argent sur Biscotte et répare la Miata !</p>
+    {% endif %}
     <p style="margin-top:14px">
       <a class="btn-or" href="{{ url_for('accueil') }}">Retour au menu</a>
     </p>

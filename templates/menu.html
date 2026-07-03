@@ -23,5 +23,29 @@
 
     <a class="btn-menu" href="{{ url_for('credits') }}">Crédits</a>
   </div>
+
+  {# Musique de fond du MENU (même morceau que le jeu de jour). Démarre au 1er clic
+     si le navigateur bloque le démarrage automatique. #}
+  <audio id="menuMusic" src="{{ url_for('static', filename='sounds/musiquejeu.mp3') }}" loop></audio>
+  <script>
+    (function () {
+      var m = document.getElementById("menuMusic");
+      if (!m) return;
+      m.volume = 0.3;
+      m.loop = true;   // lecture en boucle
+      // Filet de sécurité : si le navigateur ignore "loop", on relance à la fin.
+      m.addEventListener("ended", function () { m.currentTime = 0; m.play().catch(function () {}); });
+      function demarrer() {
+        m.play().catch(function () {});
+        document.removeEventListener("click", demarrer);
+        document.removeEventListener("keydown", demarrer);
+      }
+      // On tente l'autoplay ; si bloqué, on démarre au premier clic/touche.
+      m.play().catch(function () {
+        document.addEventListener("click", demarrer);
+        document.addEventListener("keydown", demarrer);
+      });
+    })();
+  </script>
 </section>
 {% endblock %}

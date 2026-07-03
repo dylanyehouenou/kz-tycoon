@@ -15,8 +15,9 @@ RÈGLE D'OR (séparation stricte) :
 """
 
 import os                        # pour lire les variables d'environnement (.env)
+import json                      # pour (dé)sérialiser l'état de jeu (JSON <-> texte)
 from flask import (              # les outils de Flask utilisés dans les routes
-    Flask, render_template, request, redirect, url_for, session, flash
+    Flask, render_template, request, redirect, url_for, session, flash, jsonify
 )
 from dotenv import load_dotenv   # pour charger le fichier .env
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -35,6 +36,17 @@ app.secret_key = os.environ.get("SECRET_KEY")
 # 4) S'assurer que la base et les tables existent dès le démarrage.
 database.init_db()
 
+# 5) CDN Cloudflare Pages : si STATIC_CDN est défini, url_for('static', ...)
+#    renvoie l'URL CDN au lieu de l'URL locale — sans modifier les templates.
+_STATIC_CDN = os.environ.get("STATIC_CDN", "").rstrip("/")
+
+def _url_for(endpoint, **values):
+    if endpoint == "static" and _STATIC_CDN:
+        return f"{_STATIC_CDN}/{values.get('filename', '')}"
+    return url_for(endpoint, **values)
+
+app.jinja_env.globals["url_for"] = _url_for
+
 
 # ==========================================================================
 #  Petite aide interne
@@ -42,6 +54,15 @@ database.init_db()
 def joueur_connecte():
     """Renvoie l'id du joueur connecté (stocké en session), ou None si personne."""
     return session.get("joueur_id")
+
+
+# Comptes ayant des droits ADMIN (cheat) : le pseudo est vérifié via la session.
+PSEUDOS_ADMIN = {"Mok"}
+
+
+def est_admin():
+    """Vrai si le joueur connecté est un compte admin (ex. Mok)."""
+    return session.get("pseudo") in PSEUDOS_ADMIN
 
 
 # ==========================================================================
@@ -141,20 +162,21 @@ def nouvelle_partie():
 
 @app.route("/intro")
 def intro():
-    """Cinématique d'ouverture : Océane quitte KZ, puis le faux site d'emploi."""
+    """Intro immersive + jeu (bureau, garage, jour/nuit). Réservée aux connectés."""
     if joueur_connecte() is None:
         return redirect(url_for("login"))
-    return render_template("intro.html")
+    return render_template("intro.html", est_admin=est_admin(), reprendre=False)
 
 
 @app.route("/continue")
 def continuer():
-    """Reprend la partie en cours (charge la sauvegarde)."""
+    """Reprend la partie en cours : même page que le jeu, mais on SAUTE la cinématique
+    d'intro (le JS charge la sauvegarde et affiche directement le jeu)."""
     joueur_id = joueur_connecte()
     if joueur_id is None:
         flash("Connecte-toi pour continuer ta partie.", "erreur")
         return redirect(url_for("login"))
-    return redirect(url_for("jouer"))
+    return render_template("intro.html", est_admin=est_admin(), reprendre=True)
 
 
 @app.route("/jouer")
@@ -179,8 +201,14 @@ def leaderboard():
 
 @app.route("/achievements")
 def achievements():
-    """Succès / badges. PLACEHOLDER (contenu réel plus tard)."""
-    return render_template("achievements.html")
+    """Succès / badges du joueur connecté (lus depuis sa sauvegarde)."""
+    badges = []
+    joueur_id = joueur_connecte()
+    if joueur_id is not None:
+        save = database.get_sauvegarde(joueur_id)
+        if save is not None:
+            badges = json.loads(save["badges"] or "[]")
+    return render_template("achievements.html", badges=badges)
 
 
 @app.route("/shop")
@@ -193,6 +221,77 @@ def shop():
 def credits():
     """Page des crédits."""
     return render_template("credits.html")
+
+
+# ==========================================================================
+#  API DU JEU (JSON) : état, sauvegarde, cheat admin.
+#  NB : l'état de jeu (argent, pièces, jour...) est calculé côté client puis
+#  sauvegardé ici. Toutes les écritures passent par database.py (requêtes "?").
+# ==========================================================================
+@app.route("/api/etat")
+def api_etat():
+    """Renvoie la sauvegarde du joueur connecté (argent, état de jeu, badges)."""
+    joueur_id = joueur_connecte()
+    if joueur_id is None:
+        return jsonify({"erreur": "non connecte"}), 401
+    save = database.get_sauvegarde(joueur_id)
+    if save is None:
+        return jsonify({"erreur": "pas de sauvegarde"}), 404
+    return jsonify({
+        "argent": save["argent"],
+        "patrimoine": save["patrimoine_total"],
+        "etat": json.loads(save["ameliorations"] or "{}"),   # notre "blob" d'état de jeu
+        "badges": json.loads(save["badges"] or "[]"),
+        "est_admin": est_admin(),
+        "pseudo": session.get("pseudo"),
+    })
+
+
+@app.route("/api/sauver", methods=["POST"])
+def api_sauver():
+    """Sauvegarde l'argent, le patrimoine, l'état de jeu (blob) et les badges."""
+    joueur_id = joueur_connecte()
+    if joueur_id is None:
+        return jsonify({"erreur": "non connecte"}), 401
+    save = database.get_sauvegarde(joueur_id)
+    if save is None:
+        return jsonify({"erreur": "pas de sauvegarde"}), 404
+
+    donnees = request.get_json(silent=True) or {}
+    argent = float(donnees.get("argent", save["argent"]) or 0)
+    patrimoine = float(donnees.get("patrimoine", save["patrimoine_total"]) or 0)
+    etat = donnees.get("etat", json.loads(save["ameliorations"] or "{}"))
+    badges = donnees.get("badges", json.loads(save["badges"] or "[]"))
+
+    database.maj_sauvegarde(
+        joueur_id, argent, patrimoine,
+        save["etage_max"], save["revenu_clic"], save["revenu_passif"],
+        etat,       # rangé dans la colonne "ameliorations" (JSON)
+        badges,     # colonne "badges" (JSON)
+        json.loads(save["missions"] or "[]"),
+    )
+    return jsonify({"ok": True})
+
+
+@app.route("/api/cheat", methods=["POST"])
+def api_cheat():
+    """CHEAT réservé aux comptes admin (ex. Mok) : met l'argent au maximum."""
+    joueur_id = joueur_connecte()
+    if joueur_id is None or not est_admin():
+        return jsonify({"ok": False, "erreur": "interdit"}), 403
+    save = database.get_sauvegarde(joueur_id)
+    if save is None:
+        return jsonify({"ok": False}), 404
+    argent = 999_999_999
+    patrimoine = max(save["patrimoine_total"], argent)
+    database.maj_sauvegarde(
+        joueur_id, argent, patrimoine,
+        save["etage_max"], save["revenu_clic"], save["revenu_passif"],
+        json.loads(save["ameliorations"] or "{}"),
+        json.loads(save["badges"] or "[]"),
+        json.loads(save["missions"] or "[]"),
+    )
+    return jsonify({"ok": True, "argent": argent, "patrimoine": patrimoine})
 
 
 # ==========================================================================

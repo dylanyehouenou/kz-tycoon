@@ -17,3 +17,5 @@ services:
         value: "0.0.0.0"
       - key: PORT
         value: "10000"
+      - key: STATIC_CDN
+        value: "https://kz-tycoon.pages.dev"

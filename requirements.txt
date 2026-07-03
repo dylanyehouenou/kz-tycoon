@@ -3,6 +3,7 @@
 
 Flask==3.0.3           # Micro-framework web : routes, templates Jinja, sessions
 python-dotenv==1.0.1   # Charge les variables secrètes depuis le fichier .env
+gunicorn==22.0.0       # Serveur WSGI de production (requis pour Render/hébergement)
 
 # Remarque : Werkzeug (utilisé pour HACHER les mots de passe) est installé
 # automatiquement en même temps que Flask, pas besoin de l'ajouter ici.
